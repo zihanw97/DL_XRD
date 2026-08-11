@@ -169,42 +169,6 @@ you can override:
 CUDA_VISIBLE_DEVICES=2 python run_cnn_sngp.py
 ```
 
-## What differs between the three models
-
-All three share the same `train_domain_adapt_semi_supervised` training loop
-and the same spectrally-normalized CNN backbone. Only the model head and
-domain-alignment hyperparameters change:
-
-| | Head | `lambda_mmd` | `lambda_classwise_mmd` | `use_classwise_mmd` |
-|---|---|---|---|---|
-| `run_cnn_baseline.py` | plain linear (`CNNWithPlainHead`) | 0.0 | 0.0 | False |
-| `run_cnn_sngp.py` | SNGP GP head (`SNGPWithCNN`) | 0.0 | 0.0 | False |
-| `run_cnn_sngp_adapt.py` | SNGP GP head (`SNGPWithCNN`) | 2.0 | 2.0 | True |
-
-`run_cnn_baseline.py` also skips the SNGP-specific predictive-uncertainty
-section (no predictive std to marginalize over) and goes straight to
-confidence-based evaluation.
-
-## Continual learning
-
-`model_continual_learning.py` trains the CNN-SNGP-adapt architecture
-sequentially over four data blocks (D1 → D2 → D3 → D4), each introducing new
-materials, using a replay buffer (capped at 128 samples per source) and
-teacher-student KL-distillation to avoid forgetting earlier blocks. It saves
-one checkpoint per stage (`continual_stage{1..4}.pth`) and reports the
-stage x dataset accuracy matrix, per-stage silhouette/alignment metrics, and
-a t-SNE plot of the latent space at each stage.
-
-To skip training and instead evaluate four independently pretrained
-checkpoints (one per stage, trained from scratch in isolation -- the naive
-baseline this method is compared against):
-
-```bash
-SKIP_TRAINING=1 python model_continual_learning.py
-# override individual stage checkpoints:
-PRETRAINED_STAGE1_CHECKPOINT=/path/to/model.pth python model_continual_learning.py
-```
-
 ## Pretrained checkpoints
 
 Checkpoints are plain `torch.save(model.state_dict())` files and are **not**
