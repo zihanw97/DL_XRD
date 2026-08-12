@@ -19,9 +19,6 @@ systematically different. It provides:
    out-of-distribution (OOD) detection, and latent-space quality (t-SNE/openTSNE
    plots, silhouette score, source/target alignment distance).
 
-This is a script port of the notebooks in `../three_model_comparison/`
-(kept unchanged for reference) -- same data pipeline and hyperparameters,
-runnable as plain Python instead of Jupyter.
 
 ## Data, code & model availability
 
