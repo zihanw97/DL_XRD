@@ -1,4 +1,4 @@
-# XRD Crystal-Structure Classification with Domain Adaptation & Uncertainty
+# Autonomous Materials Characterization through Continual Deep Learning with Simulated and Experimental Materials Data
 
 Classifies the crystal structure (BCC / FCC / HCP) of a metal from its X-ray
 diffraction (XRD) detector pattern. The core problem this repo addresses is
