@@ -19,9 +19,6 @@ systematically different. It provides:
    out-of-distribution (OOD) detection, and latent-space quality (t-SNE/openTSNE
    plots, silhouette score, source/target alignment distance).
 
-This is a script port of the notebooks in `../three_model_comparison/`
-(kept unchanged for reference) -- same data pipeline and hyperparameters,
-runnable as plain Python instead of Jupyter.
 
 ## Table of contents
 
@@ -30,7 +27,6 @@ runnable as plain Python instead of Jupyter.
 - [Installation](#installation)
 - [Quickstart: inference only (pretrained checkpoint, no dataset needed)](#quickstart-inference-only-pretrained-checkpoint-no-dataset-needed)
 - [Running from scratch (data prep + training)](#running-from-scratch-data-prep--training)
-- [Continual learning](#continual-learning)
 - [Pretrained checkpoints](#pretrained-checkpoints)
 
 ## Repository layout
