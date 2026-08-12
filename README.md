@@ -42,9 +42,7 @@ NUM_EPOCHS=2 python run_cnn_sngp_adapt.py
     without needing to wait for a real training run -- ~1 minute (measured)
 
 python run_cnn_sngp_adapt.py
-  → full training, full model (up to 800 epochs, early-stopped) -- duration
-    not benchmarked here; depends on GPU and how early early-stopping
-    triggers (patience=30 epochs of no improvement)
+  → full training, full model
 
 SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp_adapt.pth python run_cnn_sngp_adapt.py
   → loads the pretrained full-model checkpoint and reproduces
