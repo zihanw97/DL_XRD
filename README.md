@@ -1,6 +1,5 @@
 # Autonomous Materials Characterization through Continual Deep Learning with Simulated and Experimental Materials Data
 
-
 Classifies the crystal structure (BCC / FCC / HCP) of a metal from its X-ray
 diffraction (XRD) detector pattern. The core problem this repo addresses is
 **sim-to-real domain shift**: models are trained mostly on simulated XRD
@@ -24,6 +23,55 @@ This is a script port of the notebooks in `../three_model_comparison/`
 (kept unchanged for reference) -- same data pipeline and hyperparameters,
 runnable as plain Python instead of Jupyter.
 
+## Data, code & model availability
+
+Prepared against [Digital Discovery's (RSC) data/code availability
+requirements](https://www.rsc.org/publishing/publish-with-us/publish-a-journal-article/digital-discovery):
+code and data in a persistent, community-recognized repository with a DOI
+(RSC recommends Zenodo for GitHub-hosted code); the complete dataset used
+for training/testing available (or a documented representative subset);
+referee access during peer review; and a Data Availability Statement with
+repository names, accession numbers, DOIs, and full URLs.
+
+| Requirement | Status |
+|---|---|
+| Code in a version-controlled repository | ✅ this repository |
+| Code archived in a persistent repository (Zenodo) with a DOI | ⏳ **TODO** -- deposit on acceptance; DOI not yet minted |
+| Complete training/testing dataset available | ⚠️ Available on request; not yet deposited. 100% of simulated + main experimental data used is documented, including the one intentionally-partial subset -- see [Dataset layout](#dataset-layout) |
+| Trained model checkpoints available | ⚠️ Available on request; not yet deposited (see [Pretrained checkpoints](#pretrained-checkpoints)) |
+| Referee access to code/data during review | ⏳ Coordinate a private repo invite or reviewer link with the editor at submission |
+| Software/dependency versions pinned | ✅ [Requirements](#requirements) + [`requirements.txt`](requirements.txt) |
+| Logs enabling validation without full reproduction | ✅ [`logs/`](logs/), see [Logs (reproducibility)](#logs-reproducibility) |
+| Smoke test / fast pipeline check | ✅ see [Reproducibility quickstart](#reproducibility-quickstart) below |
+| Known data/code issues disclosed | ✅ `cnn_baseline.pth` checkpoint mismatch (see [Logs](#logs-reproducibility)); partial OOD folder usage (see [Dataset layout](#dataset-layout)) |
+| Open license | ⏳ **TODO** -- not yet finalized |
+| Data Availability Statement (for the manuscript) | template below -- fill in the `[TODO]`s once repository/DOIs exist |
+
+### Data Availability Statement (template)
+
+Use/adapt this for the manuscript once the `[TODO]` values below exist --
+RSC requires full URLs and DOIs written out, not just hyperlinked text:
+
+> The code that supports the findings of this study is openly available on
+> GitHub at `[TODO: full github.com/<org>/<repo> URL]`, archived at Zenodo
+> with DOI `[TODO: 10.5281/zenodo.XXXXXXX]`. The complete simulated and
+> experimental XRD datasets used for training and testing, and the trained
+> model checkpoints, are available at `[TODO: dataset DOI/URL]`.
+
+### How to cite
+
+Paper and software citation, to be filled in once available (see
+[`CITATION.cff`](CITATION.cff) for the machine-readable version GitHub
+surfaces as a "Cite this repository" link):
+
+```
+[TODO: paper citation]
+```
+```
+[TODO: software citation -- e.g. Author(s). (year). Repository name (version).
+Zenodo. https://doi.org/10.5281/zenodo.XXXXXXX]
+```
+
 ## Reproducibility quickstart
 
 Times below were measured on the GPU this repo was developed on; expect
@@ -42,7 +90,9 @@ NUM_EPOCHS=2 python run_cnn_sngp_adapt.py
     without needing to wait for a real training run -- ~1 minute (measured)
 
 python run_cnn_sngp_adapt.py
-  → full training, full model
+  → full training, full model (up to 800 epochs, early-stopped) -- duration
+    not benchmarked here; depends on GPU and how early early-stopping
+    triggers (patience=30 epochs of no improvement)
 
 SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp_adapt.pth python run_cnn_sngp_adapt.py
   → loads the pretrained full-model checkpoint and reproduces
@@ -57,6 +107,7 @@ SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_lea
 
 ## Table of contents
 
+- [Data, code & model availability](#data-code--model-availability)
 - [Reproducibility quickstart](#reproducibility-quickstart)
 - [Repository layout](#repository-layout)
 - [Requirements](#requirements)
@@ -86,6 +137,8 @@ SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_lea
 | `run_cnn_sngp_adapt.py` | Train/evaluate model 3 (full model): CNN + SNGP + MMD domain adaptation. |
 | `model_continual_learning.py` | Sequential continual-learning training over data blocks D1→D2→D3→D4 with replay + distillation, one checkpoint per stage. |
 | `logs/` | Recorded input command + full output for each evaluation script run against its pretrained checkpoint, see [Logs (reproducibility)](#logs-reproducibility). |
+| `requirements.txt` | Pinned dependency versions (excluding `torch`, installed separately for the correct CUDA/CPU build). |
+| `CITATION.cff` | Machine-readable citation metadata (GitHub "Cite this repository" widget); currently placeholders, see [Data, code & model availability](#data-code--model-availability). |
 
 ## Requirements
 
@@ -113,12 +166,13 @@ evaluation both run fine on CPU.
 git clone <this-repo-url>
 cd model
 python -m venv .venv && source .venv/bin/activate   # optional but recommended
-pip install torch numpy scikit-learn scikit-image matplotlib pillow tifffile opentsne
-```
 
-For a GPU build of `torch`, follow the install command for your CUDA version
-from [pytorch.org/get-started](https://pytorch.org/get-started/locally/)
-instead of a plain `pip install torch`.
+# install the correct torch build for your CUDA version (or CPU-only) first --
+# see https://pytorch.org/get-started/locally/
+pip install torch
+
+pip install -r requirements.txt
+```
 
 ## Quickstart: inference only (pretrained checkpoint, no dataset needed)
 
@@ -309,4 +363,23 @@ to [0, 1]) and resized to 256x256 before being fed to the CNN. `data_prep.py`
 caches the fully processed tensors and loader splits to `xrd_dataset_cache.pt`
 so this preprocessing only needs to run once.
 
+### Exactly what ends up in `xrd_dataset_cache.pt`
 
+Not every raw image that `data_prep.py` reads from `data/` ends up used in
+training/evaluation -- for reviewers checking dataset completeness against
+the results reported from this repo, here is the exact breakdown:
+
+| Raw source | Images on disk | Images actually cached/used | Coverage |
+|---|---|---|---|
+| `data/sim_dataset_new/` (simulated) | 901 | 901 (`train_source_1/2/3` + `train_source_outlier` + their test splits) | 100% |
+| `data/experiment_1500_maxima/` (in-distribution experimental) | 800 | 800 (`train_target_1-4` + `test_target_1-4`) | 100% |
+| `data/experiment_1500_maxima_outliner/` (OOD experimental) | 400 | 100 (`OOD_X`: 50, `OOD_bad_X`: 50) | 25% |
+
+The gap is in `build_ood_loaders()` in [`data_prep.py`](data_prep.py): it
+reads all 400 outlier images from disk, but only keeps two fixed 50-image
+slices (`X_exp[:50]` and `X_exp[100:150]`) for the cached `OOD`/`OOD_bad`
+loaders used in `evaluation.py`'s uncertainty/OOD-detection reporting; the
+other 300 images are loaded and then discarded, not written to the cache.
+This is the complete, exact set of data actually used to produce every
+number in `logs/` -- if wider OOD coverage is needed, widen those two
+slices (or use all 400) and rebuild the cache.
