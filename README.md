@@ -183,26 +183,3 @@ at wherever you keep them:
 | `saved_models/cnn_sngp_adapt.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp_adapt.py` (full model) |
 | `saved_models/continual_stage{1..4}.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `model_continual_learning.py`, one checkpoint per stage |
 
-## Dataset layout
-
-`data_prep.py` expects the raw images under `data/`, relative to this
-directory:
-
-```
-data/sim_dataset_new/                    # simulated XRD patterns, one .tiff per sample
-                                          #   filename: "<Element>_<BCC|FCC|HCP>_...tiff"
-data/experiment_1500_maxima/             # experimental XRD patterns (in-distribution)
-                                          #   one subfolder per material, "scan_point_<n>.tif(f)" inside
-data/experiment_1500_maxima_outliner/    # experimental XRD patterns held out as OOD/outlier test set
-```
-
-This is the original raw data the models in this repo were trained and
-evaluated on (~20 GB, 901 simulated + 1200 experimental TIFF images). It is
-**not** committed to this git repo (see `.gitignore`) -- distribute it
-separately (e.g. a release asset, cloud bucket, or Git LFS) and place it
-under `data/` before running `data_prep.py`.
-
-Images are per-image normalized (99.9th-percentile clipping + min-max scale
-to [0, 1]) and resized to 256x256 before being fed to the CNN. `data_prep.py`
-caches the fully processed tensors and loader splits to `xrd_dataset_cache.pt`
-so this preprocessing only needs to run once.
