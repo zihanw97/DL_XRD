@@ -30,10 +30,8 @@ runnable as plain Python instead of Jupyter.
 - [Installation](#installation)
 - [Quickstart: inference only (pretrained checkpoint, no dataset needed)](#quickstart-inference-only-pretrained-checkpoint-no-dataset-needed)
 - [Running from scratch (data prep + training)](#running-from-scratch-data-prep--training)
-- [What differs between the three models](#what-differs-between-the-three-models)
 - [Continual learning](#continual-learning)
 - [Pretrained checkpoints](#pretrained-checkpoints)
-- [Dataset layout](#dataset-layout)
 
 ## Repository layout
 
