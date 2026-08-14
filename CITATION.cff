@@ -1,0 +1,26 @@
+# Citation metadata for this repository (GitHub renders this as a "Cite
+# this repository" widget). Fill in the TODO fields below once the paper
+# and Zenodo deposit exist -- see the "Data, code & model availability"
+# section in README.md.
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "XRD Crystal-Structure Classification with Domain Adaptation & Uncertainty"
+authors:
+  - family-names: "TODO"
+    given-names: "TODO"
+    affiliation: "TODO"
+    orcid: "TODO (optional, e.g. https://orcid.org/0000-0000-0000-0000)"
+version: "TODO (e.g. 1.0.0)"
+date-released: "TODO (YYYY-MM-DD)"
+repository-code: "TODO: full https://github.com/<org>/<repo> URL"
+doi: "TODO: 10.5281/zenodo.XXXXXXX"
+license: "TODO"
+preferred-citation:
+  type: article
+  title: "TODO: paper title"
+  authors:
+    - family-names: "TODO"
+      given-names: "TODO"
+  journal: "Digital Discovery"
+  year: "TODO"
+  doi: "TODO: paper DOI"

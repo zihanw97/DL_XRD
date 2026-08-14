@@ -1,6 +1,5 @@
 # Autonomous Materials Characterization through Continual Deep Learning with Simulated and Experimental Materials Data
 
-
 Classifies the crystal structure (BCC / FCC / HCP) of a metal from its X-ray
 diffraction (XRD) detector pattern. The core problem this repo addresses is
 **sim-to-real domain shift**: models are trained mostly on simulated XRD
@@ -329,4 +328,3 @@ and rebuild the cache for fuller OOD coverage.
 License: not yet finalized.
 
 Citation: see [`CITATION.cff`](CITATION.cff).
-

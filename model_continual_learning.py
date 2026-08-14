@@ -98,6 +98,7 @@ RFF_DIM = 64
 OUTPUT_DIM = 3
 CLASS_NAMES = {0: "BCC", 1: "FCC", 2: "HCP"}
 SAVE_PREFIX = "continual"
+NUM_EPOCHS = int(os.environ.get("NUM_EPOCHS", "800"))  # per stage
 
 # Skip train_continual entirely and instead load one independently
 # pretrained SNGPWithCNN checkpoint per stage (e.g. models trained from
@@ -825,7 +826,7 @@ def main():
             test_data_sequence,
             latent_eval_sequence,
             device,
-            num_epochs=800,
+            num_epochs=NUM_EPOCHS,
             lr=5e-5,
 
             # Inner-level losses
