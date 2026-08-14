@@ -245,17 +245,27 @@ PRETRAINED_STAGE1_CHECKPOINT=/path/to/model.pth python model_continual_learning.
 
 ## Pretrained checkpoints
 
-Checkpoints are plain `torch.save(model.state_dict())` files and are **not**
-committed to this repo (each is ~3 GB). Download them separately and place
-them under `saved_models/`, or point `--checkpoint` / `PRETRAINED_CHECKPOINT`
-at wherever you keep them:
+Checkpoints are plain `torch.save(model.state_dict())` files (each ~3 GB)
+and are **not** committed to this repo -- download from the
+[`data-v1` release](https://github.com/zihanw97/DL_XRD/releases/tag/data-v1)
+and place under `saved_models/`, or point `--checkpoint` /
+`PRETRAINED_CHECKPOINT` at wherever you keep them.
+
+Each checkpoint is split into `<2GB` parts (GitHub's release-asset limit) --
+reassemble with `cat`:
+
+```bash
+cat cnn_sngp_adapt.pth.part00 cnn_sngp_adapt.pth.part01 > saved_models/cnn_sngp_adapt.pth
+# repeat for cnn_baseline.pth, cnn_sngp.pth, sngp_cnn_model_domain_adapt_D{1..4}.pth
+sha256sum -c SHA256SUMS.txt   # verify against the checksums in the release
+```
 
 | File | Architecture | Trained with |
 |---|---|---|
 | `saved_models/cnn_baseline.pth` | `CNNWithPlainHead(input_channels=1, output_dim=3)` | `run_cnn_baseline.py` |
 | `saved_models/cnn_sngp.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp.py` |
 | `saved_models/cnn_sngp_adapt.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp_adapt.py` (full model) |
-| `saved_models/continual_stage{1..4}.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `model_continual_learning.py`, one checkpoint per stage |
+| `saved_models/sngp_cnn_model_domain_adapt_D{1..4}.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | continual-learning per-stage checkpoints, see [Continual learning](#continual-learning) |
 
 ## Logs (reproducibility)
 
@@ -297,10 +307,26 @@ data/experiment_1500_maxima_outliner/    # experimental XRD patterns held out as
 ```
 
 This is the original raw data the models in this repo were trained and
-evaluated on (~20 GB, 901 simulated + 1200 experimental TIFF images). It is
-**not** committed to this git repo (see `.gitignore`) -- distribute it
-separately (e.g. a release asset, cloud bucket, or Git LFS) and place it
-under `data/` before running `data_prep.py`.
+evaluated on (~8.5 GB zipped, 2101 TIFF images: 901 simulated + 1200
+experimental). It is **not** committed to this git repo (see `.gitignore`)
+-- download from the
+[`data-v1` release](https://github.com/zihanw97/DL_XRD/releases/tag/data-v1)
+and unzip under `data/` before running `data_prep.py`:
+
+```bash
+# data_experiment_1500_maxima.zip and data_sim_dataset_new.zip are each
+# split into <2GB parts (GitHub's release-asset limit); reassemble first:
+cat data_sim_dataset_new.zip.part00 data_sim_dataset_new.zip.part01 > data_sim_dataset_new.zip
+cat data_experiment_1500_maxima.zip.part00 data_experiment_1500_maxima.zip.part01 > data_experiment_1500_maxima.zip
+sha256sum -c SHA256SUMS.txt   # verify against the checksums in the release
+
+unzip -q data_sim_dataset_new.zip -d data/
+unzip -q data_experiment_1500_maxima.zip -d data/
+unzip -q data_experiment_1500_maxima_outliner.zip -d data/   # not split, under 2GB
+```
+
+`xrd_dataset_cache.pt` (the processed cache `data_prep.py` produces) is also
+available directly in the release if you'd rather skip preprocessing.
 
 Images are per-image normalized (99.9th-percentile clipping + min-max scale
 to [0, 1]) and resized to 256x256 before being fed to the CNN. `data_prep.py`

@@ -3,6 +3,7 @@
 *.pt
 saved_models/
 data/
+release_assets/
 __pycache__/
 *.pyc
 .venv/
