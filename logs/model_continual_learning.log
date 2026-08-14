@@ -1,0 +1,102 @@
+$ cd model
+$ SKIP_TRAINING=1 \
+  PRETRAINED_STAGE1_CHECKPOINT=saved_models/sngp_cnn_model_domain_adapt_D1.pth \
+  PRETRAINED_STAGE2_CHECKPOINT=saved_models/sngp_cnn_model_domain_adapt_D2.pth \
+  PRETRAINED_STAGE3_CHECKPOINT=saved_models/sngp_cnn_model_domain_adapt_D3.pth \
+  PRETRAINED_STAGE4_CHECKPOINT=saved_models/sngp_cnn_model_domain_adapt_D4.pth \
+  python model_continual_learning.py
+
+CUDA Available: True
+train_target_loader_all_semi: 190/631 samples kept as labeled anchors, rest unlabeled (-1)
+Loaded cached datasets from xrd_dataset_cache.pt
+Combined loaders:
+  train_source_loader_all (D1-D3): 676
+  train_target_loader_all (D1-D3): 631
+  test_source_loader_all (D1-D4) : 89
+  test_target_loader_all (D1-D4) : 79
+Held-out experimental label anchors per stage (D1-D4, one stage each):
+  Target D1: 35/176 labeled (19.9%)
+  Target D2: 52/261 labeled (19.9%)
+  Target D3: 39/194 labeled (20.1%)
+  Target D4: 18/90 labeled (20.0%)
+D1: source train=407, target train=176, source test=45, target test=19
+D2: source train=158, target train=261, source test=17, target test=29
+D3: source train=111, target train=194, source test=12, target test=21
+D4: source train=136, target train=90, source test=15, target test=10
+SKIP_TRAINING=1 -- loading one pretrained checkpoint per stage:
+  Stage 1: saved_models/sngp_cnn_model_domain_adapt_D1.pth
+  Stage 2: saved_models/sngp_cnn_model_domain_adapt_D2.pth
+  Stage 3: saved_models/sngp_cnn_model_domain_adapt_D3.pth
+  Stage 4: saved_models/sngp_cnn_model_domain_adapt_D4.pth
+
+======================================================================
+Stage 1/4 -- loading pretrained checkpoint
+======================================================================
+Loading: saved_models/sngp_cnn_model_domain_adapt_D1.pth
+Saved checkpoint: continual_stage1.pth
+Stage 1 summary: {'stage': 1, 'time_sec': 0.0, 'D1': 1.0, 'D1_src': 1.0, 'D1_tgt': 1.0, 'silhouette': 0.9820253, 'align_dist': 0.17944904}
+Saved: continual_latents_stage1.png
+
+======================================================================
+Stage 2/4 -- loading pretrained checkpoint
+======================================================================
+Loading: saved_models/sngp_cnn_model_domain_adapt_D2.pth
+Saved checkpoint: continual_stage2.pth
+Stage 2 summary: {'stage': 2, 'time_sec': 0.0, 'D1': 1.0, 'D1_src': 1.0, 'D1_tgt': 1.0, 'D2': 1.0, 'D2_src': 1.0, 'D2_tgt': 1.0, 'silhouette': 0.9954162, 'align_dist': 0.040195096}
+Saved: continual_latents_stage2.png
+
+======================================================================
+Stage 3/4 -- loading pretrained checkpoint
+======================================================================
+Loading: saved_models/sngp_cnn_model_domain_adapt_D3.pth
+Saved checkpoint: continual_stage3.pth
+Stage 3 summary: {'stage': 3, 'time_sec': 0.0, 'D1': 1.0, 'D1_src': 1.0, 'D1_tgt': 1.0, 'D2': 1.0, 'D2_src': 1.0, 'D2_tgt': 1.0, 'D3': 1.0, 'D3_src': 1.0, 'D3_tgt': 1.0, 'silhouette': 0.99769175, 'align_dist': 0.02272042}
+Saved: continual_latents_stage3.png
+
+======================================================================
+Stage 4/4 -- loading pretrained checkpoint
+======================================================================
+Loading: saved_models/sngp_cnn_model_domain_adapt_D4.pth
+Saved checkpoint: continual_stage4.pth
+Stage 4 summary: {'stage': 4, 'time_sec': 0.0, 'D1': 1.0, 'D1_src': 1.0, 'D1_tgt': 1.0, 'D2': 1.0, 'D2_src': 1.0, 'D2_tgt': 1.0, 'D3': 1.0, 'D3_src': 1.0, 'D3_tgt': 1.0, 'D4': 1.0, 'D4_src': 1.0, 'D4_tgt': 1.0, 'silhouette': 0.99966365, 'align_dist': 0.00689166}
+Saved: continual_latents_stage4.png
+
+======================================================================
+Results: accuracy matrix (stage x dataset)
+======================================================================
+                D1        D2        D3        D4
+Stage 1:  100.00%        --         --         --
+Stage 2:  100.00%    100.00%        --         --
+Stage 3:  100.00%    100.00%    100.00%        --
+Stage 4:  100.00%    100.00%    100.00%    100.00%
+
+======================================================================
+Results: per-domain accuracy breakdown (simulation vs. experimental)
+======================================================================
+Simulation (source) accuracy:
+                D1        D2        D3        D4
+Stage 1:  100.00%        --         --         --
+Stage 2:  100.00%    100.00%        --         --
+Stage 3:  100.00%    100.00%    100.00%        --
+Stage 4:  100.00%    100.00%    100.00%    100.00%
+
+Experimental (target) accuracy:
+                D1        D2        D3        D4
+Stage 1:  100.00%        --         --         --
+Stage 2:  100.00%    100.00%        --         --
+Stage 3:  100.00%    100.00%    100.00%        --
+Stage 4:  100.00%    100.00%    100.00%    100.00%
+
+
+======================================================================
+Results: per-stage latent-space quality & training time
+======================================================================
+Stage   Test Acc (new data)   Silhouette    Align. Dist.  Time
+1       100.00%               0.9820        0.1794        0.0 min
+2       100.00%               0.9954        0.0402        0.0 min
+3       100.00%               0.9977        0.0227        0.0 min
+4       100.00%               0.9997        0.0069        0.0 min
+
+Total continual-learning training time across all stages: 0.0 min
+
+(Per-stage latent-space plots were saved during training/evaluation above.)

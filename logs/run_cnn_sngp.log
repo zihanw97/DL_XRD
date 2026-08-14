@@ -1,0 +1,54 @@
+$ cd model
+$ SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp.pth python run_cnn_sngp.py
+
+CUDA Available: True
+train_target_loader_all_semi: 190/631 samples kept as labeled anchors, rest unlabeled (-1)
+Loaded cached datasets from xrd_dataset_cache.pt
+Combined loaders:
+  train_source_loader_all (D1-D3): 676
+  train_target_loader_all (D1-D3): 631
+  test_source_loader_all (D1-D4) : 89
+  test_target_loader_all (D1-D4) : 79
+SKIP_TRAINING=1 -- loading pretrained checkpoint from saved_models/cnn_sngp.pth
+
+======================================================================
+Overall accuracy on the whole dataset
+======================================================================
+                     Simulation              Experimental
+Train accuracy:      100.00% (n= 676)    100.00% (n= 631)
+Test accuracy:       100.00% (n=  74)    100.00% (n=  69)
+
+Train accuracy   (n=1307): 100.00%
+Test accuracy    (n=143):  100.00%
+Overall accuracy (n=1450): 100.00%
+
+======================================================================
+Latent-space visualization (t-SNE)
+======================================================================
+
+======================================================================
+Uncertainty & OOD detection (SNGP predictive uncertainty)
+======================================================================
+ID (train_source_all) uncertainty:      mean=0.0006
+OOD (test_source_all) uncertainty:       mean=0.0141
+OOD (OOD_data_loader) uncertainty:       mean=0.2665
+OOD (OOD_bad_data_loader) uncertainty:   mean=0.0062
+
+======================================================================
+Confidence analysis
+======================================================================
+Mean predictive confidence: 0.99942917
+Std predictive confidence: 5.167653e-05
+ID confidence:  mean=0.9994 std=0.0000
+OOD confidence: mean=0.9191 std=0.0913
+
+======================================================================
+Latent-space quality metrics (silhouette & source/target alignment)
+======================================================================
+Silhouette score: 0.8347606
+Train Alignment Distance: 1.7499
+Per-class distances: {0: 2.2428548, 1: 1.2166336, 2: 1.7900902}
+
+======================================================================
+Final latent-space visualization (openTSNE)
+======================================================================
