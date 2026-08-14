@@ -26,8 +26,7 @@ runnable as plain Python instead of Jupyter.
 ## Reproducibility quickstart
 
 See [Logs](#logs-reproducibility) for the exact commands/output behind the
-"reproduces logs/..." rows below, and [Continual learning](#continual-learning)
-for the full per-stage command.
+"reproduces logs/..." rows below.
 
 ```
 python data_prep.py
@@ -62,8 +61,6 @@ SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_lea
 - [Installation](#installation)
 - [Quickstart: inference only (pretrained checkpoint, no dataset needed)](#quickstart-inference-only-pretrained-checkpoint-no-dataset-needed)
 - [Running from scratch (data prep + training)](#running-from-scratch-data-prep--training)
-- [What differs between the three models](#what-differs-between-the-three-models)
-- [Continual learning](#continual-learning)
 - [Pretrained checkpoints](#pretrained-checkpoints)
 - [Logs (reproducibility)](#logs-reproducibility)
 - [Dataset layout](#dataset-layout)
@@ -207,42 +204,6 @@ you can override:
 CUDA_VISIBLE_DEVICES=2 python run_cnn_sngp.py
 ```
 
-## What differs between the three models
-
-All three share the same `train_domain_adapt_semi_supervised` training loop
-and the same spectrally-normalized CNN backbone. Only the model head and
-domain-alignment hyperparameters change:
-
-| | Head | `lambda_mmd` | `lambda_classwise_mmd` | `use_classwise_mmd` |
-|---|---|---|---|---|
-| `run_cnn_baseline.py` | plain linear (`CNNWithPlainHead`) | 0.0 | 0.0 | False |
-| `run_cnn_sngp.py` | SNGP GP head (`SNGPWithCNN`) | 0.0 | 0.0 | False |
-| `run_cnn_sngp_adapt.py` | SNGP GP head (`SNGPWithCNN`) | 2.0 | 2.0 | True |
-
-`run_cnn_baseline.py` also skips the SNGP-specific predictive-uncertainty
-section (no predictive std to marginalize over) and goes straight to
-confidence-based evaluation.
-
-## Continual learning
-
-`model_continual_learning.py` trains the CNN-SNGP-adapt architecture
-sequentially over four data blocks (D1 → D2 → D3 → D4), each introducing new
-materials, using a replay buffer (capped at 128 samples per source) and
-teacher-student KL-distillation to avoid forgetting earlier blocks. It saves
-one checkpoint per stage (`continual_stage{1..4}.pth`) and reports the
-stage x dataset accuracy matrix, per-stage silhouette/alignment metrics, and
-a t-SNE plot of the latent space at each stage.
-
-To skip training and instead evaluate four independently pretrained
-checkpoints (one per stage, trained from scratch in isolation -- the naive
-baseline this method is compared against):
-
-```bash
-SKIP_TRAINING=1 python model_continual_learning.py
-# override individual stage checkpoints:
-PRETRAINED_STAGE1_CHECKPOINT=/path/to/model.pth python model_continual_learning.py
-```
-
 ## Pretrained checkpoints
 
 Checkpoints are plain `torch.save(model.state_dict())` files (each ~3 GB)
@@ -265,7 +226,7 @@ sha256sum -c SHA256SUMS.txt   # verify against the checksums in the release
 | `saved_models/cnn_baseline.pth` | `CNNWithPlainHead(input_channels=1, output_dim=3)` | `run_cnn_baseline.py` |
 | `saved_models/cnn_sngp.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp.py` |
 | `saved_models/cnn_sngp_adapt.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp_adapt.py` (full model) |
-| `saved_models/sngp_cnn_model_domain_adapt_D{1..4}.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | continual-learning per-stage checkpoints, see [Continual learning](#continual-learning) |
+| `saved_models/sngp_cnn_model_domain_adapt_D{1..4}.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | continual-learning per-stage checkpoints, see `model_continual_learning.py` |
 
 ## Logs (reproducibility)
 
