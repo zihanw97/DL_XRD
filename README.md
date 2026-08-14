@@ -1,5 +1,6 @@
 # Autonomous Materials Characterization through Continual Deep Learning with Simulated and Experimental Materials Data
 
+
 Classifies the crystal structure (BCC / FCC / HCP) of a metal from its X-ray
 diffraction (XRD) detector pattern. The core problem this repo addresses is
 **sim-to-real domain shift**: models are trained mostly on simulated XRD
@@ -19,63 +20,15 @@ systematically different. It provides:
    out-of-distribution (OOD) detection, and latent-space quality (t-SNE/openTSNE
    plots, silhouette score, source/target alignment distance).
 
-
-## Data, code & model availability
-
-Prepared against [Digital Discovery's (RSC) data/code availability
-requirements](https://www.rsc.org/publishing/publish-with-us/publish-a-journal-article/digital-discovery):
-code and data in a persistent, community-recognized repository with a DOI
-(RSC recommends Zenodo for GitHub-hosted code); the complete dataset used
-for training/testing available (or a documented representative subset);
-referee access during peer review; and a Data Availability Statement with
-repository names, accession numbers, DOIs, and full URLs.
-
-| Requirement | Status |
-|---|---|
-| Code in a version-controlled repository | ✅ this repository |
-| Code archived in a persistent repository (Zenodo) with a DOI | ⏳ **TODO** -- deposit on acceptance; DOI not yet minted |
-| Complete training/testing dataset available | ⚠️ Available on request; not yet deposited. 100% of simulated + main experimental data used is documented, including the one intentionally-partial subset -- see [Dataset layout](#dataset-layout) |
-| Trained model checkpoints available | ⚠️ Available on request; not yet deposited (see [Pretrained checkpoints](#pretrained-checkpoints)) |
-| Referee access to code/data during review | ⏳ Coordinate a private repo invite or reviewer link with the editor at submission |
-| Software/dependency versions pinned | ✅ [Requirements](#requirements) + [`requirements.txt`](requirements.txt) |
-| Logs enabling validation without full reproduction | ✅ [`logs/`](logs/), see [Logs (reproducibility)](#logs-reproducibility) |
-| Smoke test / fast pipeline check | ✅ see [Reproducibility quickstart](#reproducibility-quickstart) below |
-| Known data/code issues disclosed | ✅ `cnn_baseline.pth` checkpoint mismatch (see [Logs](#logs-reproducibility)); partial OOD folder usage (see [Dataset layout](#dataset-layout)) |
-| Open license | ⏳ **TODO** -- not yet finalized |
-| Data Availability Statement (for the manuscript) | template below -- fill in the `[TODO]`s once repository/DOIs exist |
-
-### Data Availability Statement (template)
-
-Use/adapt this for the manuscript once the `[TODO]` values below exist --
-RSC requires full URLs and DOIs written out, not just hyperlinked text:
-
-> The code that supports the findings of this study is openly available on
-> GitHub at `[TODO: full github.com/<org>/<repo> URL]`, archived at Zenodo
-> with DOI `[TODO: 10.5281/zenodo.XXXXXXX]`. The complete simulated and
-> experimental XRD datasets used for training and testing, and the trained
-> model checkpoints, are available at `[TODO: dataset DOI/URL]`.
-
-### How to cite
-
-Paper and software citation, to be filled in once available (see
-[`CITATION.cff`](CITATION.cff) for the machine-readable version GitHub
-surfaces as a "Cite this repository" link):
-
-```
-[TODO: paper citation]
-```
-```
-[TODO: software citation -- e.g. Author(s). (year). Repository name (version).
-Zenodo. https://doi.org/10.5281/zenodo.XXXXXXX]
-```
+This is a script port of the notebooks in `../three_model_comparison/`
+(kept unchanged for reference) -- same data pipeline and hyperparameters,
+runnable as plain Python instead of Jupyter.
 
 ## Reproducibility quickstart
 
-Times below were measured on the GPU this repo was developed on; expect
-some variation on different hardware. See [Logs (reproducibility)](#logs-reproducibility)
-for the exact commands and full recorded output behind the "reproduces
-logs/..." rows, and [Continual learning](#continual-learning) for the full
-per-stage command.
+See [Logs](#logs-reproducibility) for the exact commands/output behind the
+"reproduces logs/..." rows below, and [Continual learning](#continual-learning)
+for the full per-stage command.
 
 ```
 python data_prep.py
@@ -104,7 +57,6 @@ SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_lea
 
 ## Table of contents
 
-- [Data, code & model availability](#data-code--model-availability)
 - [Reproducibility quickstart](#reproducibility-quickstart)
 - [Repository layout](#repository-layout)
 - [Requirements](#requirements)
@@ -116,6 +68,7 @@ SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_lea
 - [Pretrained checkpoints](#pretrained-checkpoints)
 - [Logs (reproducibility)](#logs-reproducibility)
 - [Dataset layout](#dataset-layout)
+- [License & citation](#license--citation)
 
 ## Repository layout
 
@@ -135,7 +88,7 @@ SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_lea
 | `model_continual_learning.py` | Sequential continual-learning training over data blocks D1→D2→D3→D4 with replay + distillation, one checkpoint per stage. |
 | `logs/` | Recorded input command + full output for each evaluation script run against its pretrained checkpoint, see [Logs (reproducibility)](#logs-reproducibility). |
 | `requirements.txt` | Pinned dependency versions (excluding `torch`, installed separately for the correct CUDA/CPU build). |
-| `CITATION.cff` | Machine-readable citation metadata (GitHub "Cite this repository" widget); currently placeholders, see [Data, code & model availability](#data-code--model-availability). |
+| `CITATION.cff` | Machine-readable citation metadata (GitHub "Cite this repository" widget). |
 
 ## Requirements
 
@@ -307,12 +260,9 @@ at wherever you keep them:
 
 ## Logs (reproducibility)
 
-`logs/` contains the full console output (both the exact command invoked and
-everything it printed) of running each evaluation script against its
-pretrained checkpoint. Per common reproducibility guidelines, these are
-provided so a reader can check the numbers reported for this repo directly
-against real recorded output, without having to reproduce the entire study
-(data prep, training, evaluation) end to end.
+`logs/` has the full console output (command + everything it printed) for
+each evaluation script run against its pretrained checkpoint, so you can
+check reported numbers without rerunning anything.
 
 | Log file | Command (recorded at the top of the log) | Model |
 |---|---|---|
@@ -320,11 +270,9 @@ against real recorded output, without having to reproduce the entire study
 | `logs/run_cnn_sngp_adapt.log` | `SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp_adapt.pth python run_cnn_sngp_adapt.py` | Model 3: CNN-SNGP-adapt (full model) |
 | `logs/model_continual_learning.log` | `SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=saved_models/sngp_cnn_model_domain_adapt_D{1..4}.pth python model_continual_learning.py` | Continual-learning stages 1-4 |
 
-Each log shows train/test accuracy (simulation and experimental, separately
-and combined), SNGP predictive uncertainty for in-distribution vs.
-out-of-distribution inputs, confidence statistics, and latent-space quality
-(silhouette score, source/target alignment distance) -- i.e. every number
-that would otherwise require rerunning the script to see.
+Each log shows train/test accuracy (simulation and experimental), SNGP
+predictive uncertainty on in-distribution vs. OOD inputs, confidence
+statistics, and latent-space quality (silhouette, alignment distance).
 
 There is currently no `logs/run_cnn_baseline.log`: `saved_models/cnn_baseline.pth`
 does not actually hold `CNNWithPlainHead` weights (loading it raises a
@@ -360,11 +308,9 @@ to [0, 1]) and resized to 256x256 before being fed to the CNN. `data_prep.py`
 caches the fully processed tensors and loader splits to `xrd_dataset_cache.pt`
 so this preprocessing only needs to run once.
 
-### Exactly what ends up in `xrd_dataset_cache.pt`
+### What ends up in `xrd_dataset_cache.pt`
 
-Not every raw image that `data_prep.py` reads from `data/` ends up used in
-training/evaluation -- for reviewers checking dataset completeness against
-the results reported from this repo, here is the exact breakdown:
+Not every raw image gets used -- exact breakdown:
 
 | Raw source | Images on disk | Images actually cached/used | Coverage |
 |---|---|---|---|
@@ -373,10 +319,14 @@ the results reported from this repo, here is the exact breakdown:
 | `data/experiment_1500_maxima_outliner/` (OOD experimental) | 400 | 100 (`OOD_X`: 50, `OOD_bad_X`: 50) | 25% |
 
 The gap is in `build_ood_loaders()` in [`data_prep.py`](data_prep.py): it
-reads all 400 outlier images from disk, but only keeps two fixed 50-image
-slices (`X_exp[:50]` and `X_exp[100:150]`) for the cached `OOD`/`OOD_bad`
-loaders used in `evaluation.py`'s uncertainty/OOD-detection reporting; the
-other 300 images are loaded and then discarded, not written to the cache.
-This is the complete, exact set of data actually used to produce every
-number in `logs/` -- if wider OOD coverage is needed, widen those two
-slices (or use all 400) and rebuild the cache.
+reads all 400 outlier images but only keeps two fixed 50-image slices
+(`X_exp[:50]` and `X_exp[100:150]`) for the cached `OOD`/`OOD_bad` loaders;
+the other 300 are read and discarded. Widen those slices (or use all 400)
+and rebuild the cache for fuller OOD coverage.
+
+## License & citation
+
+License: not yet finalized.
+
+Citation: see [`CITATION.cff`](CITATION.cff).
+
