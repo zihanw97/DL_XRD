@@ -41,7 +41,7 @@ STUDENT_PATH = "cnn_baseline_student.pth"
 INPUT_CHANNELS = 1
 OUTPUT_DIM = 3
 LR = 5e-5
-NUM_EPOCHS = 800
+NUM_EPOCHS = int(os.environ.get("NUM_EPOCHS", "800"))
 
 # Set PRETRAINED_CHECKPOINT to an existing .pth file to load it directly and
 # skip training entirely. Defaults to the checkpoint this exact script
