@@ -1,0 +1,2 @@
+gpytorch==1.9.1
+linear_operator==0.6

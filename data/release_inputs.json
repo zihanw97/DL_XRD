@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "repository": "zihanw97/DL_XRD",
+  "tag": "manuscript-clean-inputs-20261106",
+  "assets": [
+    {
+      "name": "fixed_images.npz",
+      "kind": "cache",
+      "destination": "data/cache/fixed_images.npz",
+      "size": 446717878,
+      "sha256": "4d434e3f82a5efc70b052c39a69c384a0a73db14ae4c06b8a082a846150bed31",
+      "url": "https://github.com/zihanw97/DL_XRD/releases/download/manuscript-clean-inputs-20261106/fixed_images.npz"
+    },
+    {
+      "name": "xrd_dataset_cache.npz",
+      "kind": "cache",
+      "destination": "data/cache/xrd_dataset_cache.npz",
+      "size": 619479646,
+      "sha256": "17d8118cb454d081ebd224dba4e440b3412d9e9b24ac21b12cd7d18444a50222",
+      "url": "https://github.com/zihanw97/DL_XRD/releases/download/manuscript-clean-inputs-20261106/xrd_dataset_cache.npz"
+    },
+    {
+      "name": "raw_inputs.tar.gz.part00",
+      "kind": "raw_archive_part",
+      "size": 623893204,
+      "sha256": "26c5def4ddcb3ca9da7353243a44730f8d6e6a3d9d9a4c9d57f645219e7fe2af",
+      "url": "https://github.com/zihanw97/DL_XRD/releases/download/manuscript-clean-inputs-20261106/raw_inputs.tar.gz.part00"
+    }
+  ],
+  "raw_image_count": 1901,
+  "raw_instruction_count": 20,
+  "contains_model_weights": false,
+  "contains_training_results": false
+}
