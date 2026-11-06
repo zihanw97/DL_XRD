@@ -1,7 +1,5 @@
-# torch is deliberately not pinned here: the correct build depends on your
-# CUDA version (or CPU-only). Install it separately first following
-# https://pytorch.org/get-started/locally/ -- this repo was developed
-# against torch==2.6.0 (CUDA 12.4 build).
+# Install the PyTorch build appropriate for the machine first.
+# The source experiments used torch 2.6.0 with CUDA 12.4.
 numpy==1.26.4
 scikit-learn==1.5.1
 scikit-image==0.24.0

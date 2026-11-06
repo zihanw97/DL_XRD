@@ -1,317 +1,92 @@
-# Autonomous Materials Characterization through Continual Deep Learning with Simulated and Experimental Materials Data
+# XRD classification with domain adaptation and continual learning
 
-Classifies the crystal structure (BCC / FCC / HCP) of a metal from its X-ray
-diffraction (XRD) detector pattern. The core problem this repo addresses is
-**sim-to-real domain shift**: models are trained mostly on simulated XRD
-patterns but need to work on real experimental ones, which look
-systematically different. It provides:
+Code and input data for CNN, CNN–SNGP, CNN–SNGP–adapt, the four-stage
+continual-learning comparison, and a supplementary CNN–DKL control.
+The shared model uses the original six-convolution encoder, a 256-dimensional
+pre-head embedding, and spectral normalization on the two dense layers only.
 
-1. **Three comparable CNN classifiers** that isolate the effect of each
-   design choice: a plain CNN baseline, a CNN with an SNGP (Spectral-normalized
-   Neural Gaussian Process) uncertainty head, and the full model with SNGP +
-   MMD-based domain adaptation between the simulated and experimental
-   distributions.
-2. A **continual-learning strategy** that updates the full model on new
-   batches of materials/data over time (D1 -> D2 -> D3 -> D4) using a replay
-   buffer and teacher-student distillation, instead of retraining from
-   scratch on the union of all data.
-3. Built-in **evaluation**: accuracy, predictive-uncertainty-based
-   out-of-distribution (OOD) detection, and latent-space quality (t-SNE/openTSNE
-   plots, silhouette score, source/target alignment distance).
+The fixed-model recipe uses 10% experimental training anchors and one training
+stage, without latent-cluster refinement. The continual-learning procedure
+retains its existing replay, distillation, and geometry-training phases.
+See [fixed/README.md](fixed/README.md) and
+[continual/README.md](continual/README.md) for the separate configurations.
+This cleaned fixed-model recipe requires new runs; it does not reproduce the
+earlier 30%-anchor, refined result tables. No results or checkpoints are included.
 
-This is a script port of the notebooks in `../three_model_comparison/`
-(kept unchanged for reference) -- same data pipeline and hyperparameters,
-runnable as plain Python instead of Jupyter.
+## Download the inputs
 
-## Reproducibility quickstart
+**Publication status:** GitHub currently distributes the code only. The input
+images, caches, and per-scan metadata remain in the local clean package; public
+publication of the prepared input release is awaiting the owner's approval.
+Data-dependent commands below require that complete input bundle. The input
+release manifest is not part of the code-only GitHub revision.
 
-See [Logs](#logs-reproducibility) for the exact commands/output behind the
-"reproduces logs/..." rows below.
-
-```
-python data_prep.py
-  → builds the dataset cache from data/ (one-time), a few minutes
-
-NUM_EPOCHS=2 python run_cnn_sngp_adapt.py
-  → smoke test: runs the real training loop for 2 epochs, then the full
-    evaluation suite, to verify the whole pipeline executes end to end
-    without needing to wait for a real training run -- ~1 minute (measured)
-
-python run_cnn_sngp_adapt.py
-  → full training, full model (up to 800 epochs, early-stopped) -- duration
-    not benchmarked here; depends on GPU and how early early-stopping
-    triggers (patience=30 epochs of no improvement)
-
-SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp_adapt.pth python run_cnn_sngp_adapt.py
-  → loads the pretrained full-model checkpoint and reproduces
-    logs/run_cnn_sngp_adapt.log (accuracy, predictive-uncertainty-based OOD
-    detection, silhouette/alignment) -- ~1 minute (measured)
-
-SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=... python model_continual_learning.py
-  → loads one pretrained checkpoint per stage and reproduces
-    logs/model_continual_learning.log (4-stage accuracy matrix) -- ~1-2
-    minutes (measured); full per-stage env vars in the Logs section
-```
-
-## Table of contents
-
-- [Reproducibility quickstart](#reproducibility-quickstart)
-- [Repository layout](#repository-layout)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Quickstart: inference only (pretrained checkpoint, no dataset needed)](#quickstart-inference-only-pretrained-checkpoint-no-dataset-needed)
-- [Running from scratch (data prep + training)](#running-from-scratch-data-prep--training)
-- [Pretrained checkpoints](#pretrained-checkpoints)
-- [Logs (reproducibility)](#logs-reproducibility)
-- [Dataset layout](#dataset-layout)
-- [License & citation](#license--citation)
-
-## Repository layout
-
-| File | Purpose |
-|---|---|
-| `infer.py` | **Inference-only** entry point: load a checkpoint, classify one or more XRD images. No dataset/cache required. |
-| `data/` | Raw XRD TIFF images (simulated + experimental), see [Dataset layout](#dataset-layout). Not committed to git. |
-| `data_prep.py` | Builds every dataset/loader from the raw TIFF images in `data/` and caches them to `xrd_dataset_cache.pt`. Run once before training. |
-| `datasets.py` | Data loading, normalization, semi-supervised label masking, loader-combination, and cache-loading utilities. |
-| `models.py` | `SpectralNorm`, `RandomFourierFeatures`, `SNGPHead`, `CNNBackbone`, `SNGPWithCNN` (models 2 & 3), `CNNWithPlainHead` (model 1). |
-| `losses.py` | MMD and class-wise MMD domain-alignment losses. |
-| `training.py` | `train_domain_adapt_semi_supervised`, the shared training loop. |
-| `evaluation.py` | Predictions, confidence/uncertainty, OOD detection, silhouette/alignment latent-space metrics, t-SNE visualization. |
-| `run_cnn_baseline.py` | Train/evaluate model 1: plain CNN, no uncertainty head, no domain adaptation. |
-| `run_cnn_sngp.py` | Train/evaluate model 2: CNN + SNGP uncertainty head, no domain adaptation. |
-| `run_cnn_sngp_adapt.py` | Train/evaluate model 3 (full model): CNN + SNGP + MMD domain adaptation. |
-| `model_continual_learning.py` | Sequential continual-learning training over data blocks D1→D2→D3→D4 with replay + distillation, one checkpoint per stage. |
-| `logs/` | Recorded input command + full output for each evaluation script run against its pretrained checkpoint, see [Logs (reproducibility)](#logs-reproducibility). |
-| `requirements.txt` | Pinned dependency versions (excluding `torch`, installed separately for the correct CUDA/CPU build). |
-| `CITATION.cff` | Machine-readable citation metadata (GitHub "Cite this repository" widget). |
-
-## Requirements
-
-Tested with:
-
-| Package | Version |
-|---|---|
-| Python | 3.12 |
-| torch | 2.6.0 (CUDA 12.4 build; CPU-only works too, just slower) |
-| numpy | 1.26.4 |
-| scikit-learn | 1.5.1 |
-| scikit-image | 0.24.0 |
-| matplotlib | 3.9.2 |
-| Pillow | 10.4.0 |
-| tifffile | 2023.4.12 (optional -- falls back to Pillow if absent) |
-| openTSNE | 1.0.4 (optional -- only needed for the final visualization step) |
-
-A GPU is recommended for training (each model trains for several hundred
-epochs) but not required for inference: `infer.py` and `SKIP_TRAINING=1`
-evaluation both run fine on CPU.
-
-## Installation
+After the input release is published, restore its files with:
 
 ```bash
-git clone <this-repo-url>
-cd model
-python -m venv .venv && source .venv/bin/activate   # optional but recommended
-
-# install the correct torch build for your CUDA version (or CPU-only) first --
-# see https://pytorch.org/get-started/locally/
-pip install torch
-
-pip install -r requirements.txt
+git clone https://github.com/zihanw97/DL_XRD.git
+cd DL_XRD
+python data/download_inputs.py
 ```
 
-## Quickstart: inference only (pretrained checkpoint, no dataset needed)
+The prepared downloader restores 1,901 TIFF images and the two image/label caches,
+checking SHA256 hashes. The uncompressed inputs occupy about 9.2 GB.
+Large input files are release assets rather than ordinary Git blobs.
+`python data/download_inputs.py --cache-only` fetches only the two caches;
+the default fixed-model OOD evaluation also needs the raw noise/SiC images.
+The historical `data-v1` release belongs to the previous implementation and
+its checkpoints are not supplied or endorsed for this cleaned version.
 
-If you just want to classify XRD images with an already-trained model, you
-don't need the raw dataset, the `xrd_dataset_cache.pt` cache, or any
-training step. `infer.py` takes a checkpoint and one or more image files
-directly:
+## Files
+
+```text
+models.py                 Original shared CNN/SNGP definitions
+fixed/                    Three-model single-stage training/evaluation
+continual/                Preserved four-stage continual comparison
+supplementary/dkl/        Supplementary variational CNN–DKL control
+data/sim_dataset_new/     Independent copies of 901 simulated TIFFs
+data/experiment_1500_maxima/          800 known-class experimental TIFFs
+data/experiment_1500_maxima_outliner/ 200 confirmed noise/SiC TIFFs
+data/cache/               Image/label NPZ inputs, no model parameters
+data/manifests/            Fixed split/anchor assignments and OOD inputs
+data/partitions/           Exact current continual-learning assignments
+data/metadata/             Sample hierarchy and raw-input checksums
+```
+
+
+## Environment and validation
+
+Python 3.10+ is recommended; this package was checked with Python 3.12.4 and
+PyTorch 2.6.0 (CUDA 12.4). Install PyTorch for the intended CPU/CUDA environment
+and then install `requirements.txt`. DKL additionally needs
+`supplementary/dkl/requirements.txt`.
+
+From this folder, these commands inspect inputs and plans without training:
 
 ```bash
-python infer.py \
-  --checkpoint saved_models/cnn_sngp_adapt.pth \
-  --arch sngp \
-  path/to/pattern1.tiff path/to/pattern2.tiff
+python data/verify_inputs.py --full
+python data/prepare_fixed_manifests.py --check
+python -m fixed.run --protocol scan --dry-run
+python -m fixed.run --protocol grouped --dry-run
+python continual/launch_suite.py plan
+python continual/verify_inputs.py
+python -m unittest discover -s fixed/tests -v
+python -m unittest discover -s data/tests -v
 ```
 
-`infer.py` applies the same preprocessing used at training time (outlier
-clipping at the 99.9th percentile, per-image min-max normalization, resize
-to 256x256), then prints, for each image, the predicted structure
-(BCC/FCC/HCP), the softmax confidence, and -- for `sngp` models -- the SNGP
-predictive standard deviation (higher = the model is less confident this
-input resembles anything it was trained on, useful for flagging
-out-of-distribution inputs).
+## Explicit training commands
 
-`--arch` must match the checkpoint's architecture:
-
-| Checkpoint | `--arch` |
-|---|---|
-| `cnn_baseline.pth` | `plain` |
-| `cnn_sngp.pth`, `cnn_sngp_adapt.pth`, `continual_stage{1..4}.pth` | `sngp` (default) |
-
-You can also load a checkpoint directly in your own code:
-
-```python
-import torch
-import torch.nn.functional as F
-from models import SNGPWithCNN
-from infer import load_image  # preprocessing: clip + normalize + resize to 256x256
-
-model = SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)
-model.load_state_dict(torch.load("saved_models/cnn_sngp_adapt.pth", map_location="cpu"))
-model.eval()
-
-x = torch.from_numpy(load_image("pattern.tiff"))[None, None, :, :]  # (1, 1, 256, 256)
-with torch.no_grad():
-    latent, mean_logits, std = model(x)
-    probs = F.softmax(mean_logits, dim=-1)
-
-print(probs, std)  # class probabilities, predictive std (SNGP uncertainty)
-```
-
-`run_cnn_sngp.py` / `run_cnn_sngp_adapt.py` also support skipping training
-and loading a pretrained checkpoint before running the *full* evaluation
-suite (accuracy, t-SNE, silhouette, etc.) -- use this if you want the
-paper's evaluation metrics rather than a single prediction, but note it
-still requires the dataset (see below) since those metrics are computed
-against held-out data:
+Fixed-model training runs sequentially on the chosen device:
 
 ```bash
-python data_prep.py   # still needed once, to build the eval dataloaders
-SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp_adapt.pth python run_cnn_sngp_adapt.py
+python -m fixed.run --protocol scan --train --device cuda:0
+python -m fixed.run --protocol grouped --train --device cuda:0
 ```
 
-## Running from scratch (data prep + training)
+
+Register and explicitly launch the preserved continual comparison with:
 
 ```bash
-cd model
-python data_prep.py            # once, builds xrd_dataset_cache.pt from data/
-
-python run_cnn_baseline.py     # model 1: plain CNN
-python run_cnn_sngp.py         # model 2: CNN-SNGP, no domain adaptation
-python run_cnn_sngp_adapt.py   # model 3: CNN-SNGP + domain adaptation (full model)
-
-python model_continual_learning.py   # proposed continual-learning strategy
+python continual/launch_suite.py prepare --run-dir continual/results/comparison --gpus 0
+python continual/launch_suite.py schedule --run-dir continual/results/comparison
 ```
-
-Each `run_*.py` trains its model, saves a checkpoint, then reloads it and
-runs the full evaluation suite (accuracy, t-SNE, confidence,
-silhouette/alignment). They can be run independently, in any order, or in
-parallel on separate GPUs -- each sets `CUDA_VISIBLE_DEVICES` via an env var
-you can override:
-
-```bash
-CUDA_VISIBLE_DEVICES=2 python run_cnn_sngp.py
-```
-
-## Pretrained checkpoints
-
-Checkpoints are plain `torch.save(model.state_dict())` files (each ~3 GB)
-and are **not** committed to this repo -- download from the
-[`data-v1` release](https://github.com/zihanw97/DL_XRD/releases/tag/data-v1)
-and place under `saved_models/`, or point `--checkpoint` /
-`PRETRAINED_CHECKPOINT` at wherever you keep them.
-
-Each checkpoint is split into `<2GB` parts (GitHub's release-asset limit) --
-reassemble with `cat`:
-
-```bash
-cat cnn_sngp_adapt.pth.part00 cnn_sngp_adapt.pth.part01 > saved_models/cnn_sngp_adapt.pth
-# repeat for cnn_baseline.pth, cnn_sngp.pth, sngp_cnn_model_domain_adapt_D{1..4}.pth
-sha256sum -c SHA256SUMS.txt   # verify against the checksums in the release
-```
-
-| File | Architecture | Trained with |
-|---|---|---|
-| `saved_models/cnn_baseline.pth` | `CNNWithPlainHead(input_channels=1, output_dim=3)` | `run_cnn_baseline.py` |
-| `saved_models/cnn_sngp.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp.py` |
-| `saved_models/cnn_sngp_adapt.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | `run_cnn_sngp_adapt.py` (full model) |
-| `saved_models/sngp_cnn_model_domain_adapt_D{1..4}.pth` | `SNGPWithCNN(input_channels=1, rff_dim=64, output_dim=3)` | continual-learning per-stage checkpoints, see `model_continual_learning.py` |
-
-## Logs (reproducibility)
-
-`logs/` has the full console output (command + everything it printed) for
-each evaluation script run against its pretrained checkpoint, so you can
-check reported numbers without rerunning anything.
-
-| Log file | Command (recorded at the top of the log) | Model |
-|---|---|---|
-| `logs/run_cnn_sngp.log` | `SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp.pth python run_cnn_sngp.py` | Model 2: CNN-SNGP (no domain adaptation) |
-| `logs/run_cnn_sngp_adapt.log` | `SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_sngp_adapt.pth python run_cnn_sngp_adapt.py` | Model 3: CNN-SNGP-adapt (full model) |
-| `logs/model_continual_learning.log` | `SKIP_TRAINING=1 PRETRAINED_STAGE{1..4}_CHECKPOINT=saved_models/sngp_cnn_model_domain_adapt_D{1..4}.pth python model_continual_learning.py` | Continual-learning stages 1-4 |
-
-Each log shows train/test accuracy (simulation and experimental), SNGP
-predictive uncertainty on in-distribution vs. OOD inputs, confidence
-statistics, and latent-space quality (silhouette, alignment distance).
-
-There is currently no `logs/run_cnn_baseline.log`: `saved_models/cnn_baseline.pth`
-does not actually hold `CNNWithPlainHead` weights (loading it raises a
-state-dict key mismatch -- its keys match `SNGPWithCNN` instead), so no valid
-baseline checkpoint is available to evaluate right now. Once a correct
-baseline checkpoint is in place, regenerate this log with:
-
-```bash
-SKIP_TRAINING=1 PRETRAINED_CHECKPOINT=saved_models/cnn_baseline.pth python run_cnn_baseline.py > logs/run_cnn_baseline.log 2>&1
-```
-
-## Dataset layout
-
-`data_prep.py` expects the raw images under `data/`, relative to this
-directory:
-
-```
-data/sim_dataset_new/                    # simulated XRD patterns, one .tiff per sample
-                                          #   filename: "<Element>_<BCC|FCC|HCP>_...tiff"
-data/experiment_1500_maxima/             # experimental XRD patterns (in-distribution)
-                                          #   one subfolder per material, "scan_point_<n>.tif(f)" inside
-data/experiment_1500_maxima_outliner/    # experimental XRD patterns held out as OOD/outlier test set
-```
-
-This is the original raw data the models in this repo were trained and
-evaluated on (~8.5 GB zipped, 2101 TIFF images: 901 simulated + 1200
-experimental). It is **not** committed to this git repo (see `.gitignore`)
--- download from the
-[`data-v1` release](https://github.com/zihanw97/DL_XRD/releases/tag/data-v1)
-and unzip under `data/` before running `data_prep.py`:
-
-```bash
-# data_experiment_1500_maxima.zip and data_sim_dataset_new.zip are each
-# split into <2GB parts (GitHub's release-asset limit); reassemble first:
-cat data_sim_dataset_new.zip.part00 data_sim_dataset_new.zip.part01 > data_sim_dataset_new.zip
-cat data_experiment_1500_maxima.zip.part00 data_experiment_1500_maxima.zip.part01 > data_experiment_1500_maxima.zip
-sha256sum -c SHA256SUMS.txt   # verify against the checksums in the release
-
-unzip -q data_sim_dataset_new.zip -d data/
-unzip -q data_experiment_1500_maxima.zip -d data/
-unzip -q data_experiment_1500_maxima_outliner.zip -d data/   # not split, under 2GB
-```
-
-`xrd_dataset_cache.pt` (the processed cache `data_prep.py` produces) is also
-available directly in the release if you'd rather skip preprocessing.
-
-Images are per-image normalized (99.9th-percentile clipping + min-max scale
-to [0, 1]) and resized to 256x256 before being fed to the CNN. `data_prep.py`
-caches the fully processed tensors and loader splits to `xrd_dataset_cache.pt`
-so this preprocessing only needs to run once.
-
-### What ends up in `xrd_dataset_cache.pt`
-
-Not every raw image gets used -- exact breakdown:
-
-| Raw source | Images on disk | Images actually cached/used | Coverage |
-|---|---|---|---|
-| `data/sim_dataset_new/` (simulated) | 901 | 901 (`train_source_1/2/3` + `train_source_outlier` + their test splits) | 100% |
-| `data/experiment_1500_maxima/` (in-distribution experimental) | 800 | 800 (`train_target_1-4` + `test_target_1-4`) | 100% |
-| `data/experiment_1500_maxima_outliner/` (OOD experimental) | 400 | 100 (`OOD_X`: 50, `OOD_bad_X`: 50) | 25% |
-
-The gap is in `build_ood_loaders()` in [`data_prep.py`](data_prep.py): it
-reads all 400 outlier images but only keeps two fixed 50-image slices
-(`X_exp[:50]` and `X_exp[100:150]`) for the cached `OOD`/`OOD_bad` loaders;
-the other 300 are read and discarded. Widen those slices (or use all 400)
-and rebuild the cache for fuller OOD coverage.
-
-## License & citation
-
-License: not yet finalized.
-
-Citation: see [`CITATION.cff`](CITATION.cff).

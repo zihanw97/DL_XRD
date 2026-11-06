@@ -1,26 +1,20 @@
-# Citation metadata for this repository (GitHub renders this as a "Cite
-# this repository" widget). Fill in the TODO fields below once the paper
-# and Zenodo deposit exist -- see the "Data, code & model availability"
-# section in README.md.
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
-title: "XRD Crystal-Structure Classification with Domain Adaptation & Uncertainty"
+message: "Please cite this repository if you use its code or data."
+title: "Uncertainty-Aware Continual Learning for 2D XRD Interpretation Using Simulated and Experimental Data"
 authors:
-  - family-names: "TODO"
-    given-names: "TODO"
-    affiliation: "TODO"
-    orcid: "TODO (optional, e.g. https://orcid.org/0000-0000-0000-0000)"
-version: "TODO (e.g. 1.0.0)"
-date-released: "TODO (YYYY-MM-DD)"
-repository-code: "TODO: full https://github.com/<org>/<repo> URL"
-doi: "TODO: 10.5281/zenodo.XXXXXXX"
-license: "TODO"
-preferred-citation:
-  type: article
-  title: "TODO: paper title"
-  authors:
-    - family-names: "TODO"
-      given-names: "TODO"
-  journal: "Digital Discovery"
-  year: "TODO"
-  doi: "TODO: paper DOI"
+  - family-names: "Wang"
+    given-names: "Zihan"
+  - family-names: "Park"
+    given-names: "Hyun Sang"
+  - family-names: "Rachidi"
+    given-names: "Ali"
+  - family-names: "Elbert"
+    given-names: "David"
+  - family-names: "Hufnagel"
+    given-names: "Todd"
+  - family-names: "Chen"
+    given-names: "Wei"
+version: "2026.11.06"
+date-released: 2026-11-06
+repository-code: "https://github.com/zihanw97/DL_XRD"
+url: "https://github.com/zihanw97/DL_XRD"
