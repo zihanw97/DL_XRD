@@ -15,21 +15,18 @@ earlier 30%-anchor, refined result tables. No results or checkpoints are include
 
 ## Download the inputs
 
-**Publication status:** GitHub currently distributes the code only. The input
-images, caches, and per-scan metadata remain in the local clean package; public
-publication of the prepared input release is awaiting the owner's approval.
-Data-dependent commands below require that complete input bundle. The input
-release manifest is not part of the code-only GitHub revision.
-
-After the input release is published, restore its files with:
+The code, input manifests, acquisition metadata, and split assignments are
+versioned together. Large input images and caches are available in the
+[input release](https://github.com/zihanw97/DL_XRD/releases/tag/manuscript-clean-inputs-20261106).
+Clone this tagged version and restore its inputs with:
 
 ```bash
-git clone https://github.com/zihanw97/DL_XRD.git
+git clone --branch manuscript-clean-inputs-20261106 --single-branch https://github.com/zihanw97/DL_XRD.git
 cd DL_XRD
 python data/download_inputs.py
 ```
 
-The prepared downloader restores 1,901 TIFF images and the two image/label caches,
+The downloader restores 1,901 TIFF images and the two image/label caches,
 checking SHA256 hashes. The uncompressed inputs occupy about 9.2 GB.
 Large input files are release assets rather than ordinary Git blobs.
 `python data/download_inputs.py --cache-only` fetches only the two caches;

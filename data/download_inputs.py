@@ -237,8 +237,8 @@ def main(argv: list[str] | None = None) -> None:
     manifest_path = PACKAGE_ROOT / "data/release_inputs.json"
     if not manifest_path.is_file():
         parser.error("The matching input release manifest is not installed. "
-                     "This GitHub revision contains code only; see data/README.md "
-                     "for input-data publication status and local setup.")
+                     "Use the complete tagged code release and see data/README.md "
+                     "for input setup.")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assets = validate_manifest(manifest)
     caches = [asset for asset in assets if asset["kind"] == "cache"]
