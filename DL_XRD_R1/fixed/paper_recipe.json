@@ -1,0 +1,53 @@
+{
+  "schema": "fixed_manuscript_base_training_v1",
+  "architecture": {
+    "input_channels": 1,
+    "cnn_head": "flatten",
+    "cnn_output_dim": 2048,
+    "prehead_dim": 256,
+    "rff_dim": 64,
+    "rff_gamma": 0.015625,
+    "output_classes": 3,
+    "spectral_normalization_layers": ["fc1", "fc2"],
+    "power_iterations": 1,
+    "ridge_penalty": 1.0,
+    "covariance_momentum": null
+  },
+  "training": {
+    "optimizer": "Adam",
+    "learning_rate": 0.0005,
+    "learning_rate_decay": 0.997,
+    "weight_decay": 0.0,
+    "max_epochs": 800,
+    "batch_size": 32,
+    "patience": 30,
+    "minimum_epochs": 5,
+    "validation_ema_alpha": 0.2,
+    "minimum_improvement": 0.0001,
+    "source_classification_weight": 1.0,
+    "target_anchor_classification_weight": 1.0,
+    "adapt_global_mmd_weight": 2.0,
+    "adapt_anchor_prototype_weight": 2.0,
+    "global_mmd_sigma": 1.0,
+    "requested_target_anchor_fraction": 0.1,
+    "pseudo_label_classification": false,
+    "cluster_refinement": false,
+    "backend_continuation": false,
+    "dense_refinement": false,
+    "retries": 0
+  },
+  "selection": {
+    "criterion": "EMA of source mean raw-logit validation CE plus target mean raw-logit validation CE",
+    "uses_training_accuracy": false,
+    "uses_test_scores": false,
+    "uses_latent_geometry": false
+  },
+  "notes": [
+    "This is a new paper-aligned recipe, not a copy of historical refined result-generating fits.",
+    "The manuscript does not numerically specify lambda_tgt, lambda_mmd or lambda_anchor; explicit defaults 1,2,2 are retained from the original base-training recipe.",
+    "Global MMD uses L2-normalized pre-head source versus hidden-label target inputs only.",
+    "Anchor prototype alignment uses raw 256D pre-head features and revealed target anchors only.",
+    "CNN and non-adapted CNN-SNGP use source plus target-anchor CE only, with exactly the same partitions and anchors.",
+    "Continual learning has its own preserved configuration and is not changed by this fixed-model recipe."
+  ]
+}

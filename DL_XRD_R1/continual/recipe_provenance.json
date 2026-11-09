@@ -1,0 +1,189 @@
+{
+  "schema": "portable_continual_training_v1",
+  "architecture_and_strategy_unchanged": false,
+  "configuration": {
+    "strategies": [
+      "naive_finetuning",
+      "experience_replay",
+      "replay_only",
+      "lwf",
+      "continual",
+      "joint_retraining"
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "orders": {
+      "canonical": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "rotated": [
+        2,
+        3,
+        4,
+        1
+      ],
+      "reverse": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "chains": {
+      "main": 54,
+      "additional_memory_budgets": 9,
+      "secondary_material_disjoint": 9,
+      "total": 72
+    },
+    "target_training_anchors": 64,
+    "base_fresh": {
+      "learning_rate": 0.0005,
+      "optimizer": "adam",
+      "learning_rate_decay": 0.997,
+      "max_epochs": 800,
+      "applies_to": "stage 1 for every strategy and every joint-retraining stage"
+    },
+    "base_warm": {
+      "learning_rate": 2e-05,
+      "optimizer": "adam",
+      "learning_rate_decay": 0.997,
+      "max_epochs": 800,
+      "applies_to": "non-joint stages 2--4"
+    },
+    "base_fallback": {
+      "enabled": true,
+      "fresh_only": true,
+      "max_attempts": 2,
+      "fallback_learning_rate": 0.0001,
+      "trigger": "Either selected validation domain accuracy below 0.90, or a nonfinite-value FloatingPointError",
+      "attempt_selection": "minimum raw equal-block-within-domain summed-domain validation CE",
+      "test_or_plot_selection": false,
+      "charge_all_attempt_costs": true
+    },
+    "base_losses": {
+      "source_ce": 1.0,
+      "target_anchor_ce": 1.0,
+      "global_mmd": 2.0,
+      "class_prototype": 2.0,
+      "pseudo_ce": 0.1,
+      "pseudo_confidence_threshold": 0.9
+    },
+    "geometry": {
+      "learning_rate": 5e-05,
+      "optimizer": "adamw",
+      "weight_decay": 0.01,
+      "max_epochs": 60,
+      "lambda_compactness": 10.0,
+      "lambda_supcon": 0.1,
+      "contrastive_temperature": 0.1,
+      "lambda_mmd": 0.0,
+      "lambda_classwise_mmd": 0.25,
+      "geometry_warmup_epochs": 10,
+      "pseudo_labels": false,
+      "freeze_entire_cnn_prefix": true,
+      "freeze_rff": true,
+      "prehead_dimension": 256,
+      "raw_feature_kd_weight_full_only": 1.0,
+      "source_only_compactness_for_missing_target_class": true,
+      "class_alignment": "prototype",
+      "alignment_normalization": "l2",
+      "classwise_term_difference_from_reference": "The earlier dense reference used raw multi-bandwidth MMD; the restart retains angular prototype alignment with the same legacy weight key .25",
+      "radius_aware_terms": [
+        "class_compactness",
+        "full_raw_feature_distillation"
+      ]
+    },
+    "geometry_selection": {
+      "accuracy_drop_tolerance_per_domain": 0.01,
+      "mf_nll_increase_tolerance_per_domain": 0.05,
+      "score": "-raw_validation_silhouette + 0.03*shared_training_scalar_centroid_gap + 0.1*mean_domain_MF_NLL",
+      "primary_geometry": "raw 256-D pre-head features divided by one common training-fitted scalar; Euclidean",
+      "coordinate_standardized_geometry": "separately labeled diagnostic only",
+      "validation_only": true,
+      "test_or_tsne_selection": false,
+      "base_selected_fallback": true
+    },
+    "distillation": {
+      "logit_weight": 3.0,
+      "temperature": 2.0,
+      "temperature_squared_factor": true,
+      "domain_weighting": "equal-domain means",
+      "full": "logit plus raw-feature KD on prior replay",
+      "lwf": "logit only on current inputs; no retained training images",
+      "teacher": "previous final refined full model"
+    },
+    "covariance_policy": "reset each optimization epoch; rebuild from unique permitted current training plus prior replay before geometry MF validation and after final selection; cumulative seen training for joint; no discarded old images",
+    "architecture": {
+      "classes": [
+        "BCC",
+        "FCC",
+        "HCP"
+      ],
+      "feature_width": 256,
+      "rff_width": 64,
+      "rff_gamma": 0.015625,
+      "spectral_normalization": "existing fc1/fc2 only; no architectural layer added"
+    },
+    "plot_policy": "raw common 256-D pre-head primary; optional L2 diagnostic separately labeled; no favorable t-SNE seed/sample selection",
+    "save_model_or_optimizer_weights": false,
+    "logical_stage_updates": 288,
+    "physical_work_policy": "Each logical stage has base and dense optimization phases; a triggered fresh-fit fallback adds physical work and all attempted costs are retained",
+    "requested_target_anchor_fraction": 0.1,
+    "realized_target_anchor_fraction": 0.09968847352024922,
+    "original_image_roles_preserved": true,
+    "original_anchor_subset_retained": true,
+    "target_training_n": 642,
+    "anchor_selection_seed": 242,
+    "anchor_rule": "Per canonical target-training block/class, floor(0.1*n+0.5); rank original anchors by SHA256 of UTF-8 242:continual:<legacy_cache_id> and retain lowest hashes; preserve identities across methods, seeds, orders and material-disjoint remapping.",
+    "training_mask_applied_by_loader": true,
+    "packaged_source_partition_unchanged": true
+  },
+  "source_module_sha256": {
+    "latent_reporting.py": "8cc9aaa71189dbf3a9245a275c42a108fe93cf5b4d951242f271e6fc93393e14",
+    "replay_memory.py": "c959f01a537b08d70694635ce51c54fe35b50662761716802822954b2c9ee9fb",
+    "data_setup.py": "fae239a3b4c7fa90e4aa8a69bce60f10582c54facbed17323379af617f5cad21",
+    "training_engine.py": "d43ebac7aed6a221db37a80296d8d84d16a2da62bddd9e7f1abcbfdfc0e96536",
+    "geometry_losses.py": "fbeb3e827f745ad0f3305270747e4e1ce3cd9627d0ea35b68f044c65ccf67d80",
+    "launch_suite.py": "116cbdb88ba666cf2e17da8e2d810ae16943acafd45ba80fa0433d6af2e82869",
+    "worker.py": "0b35da66ae64421d2dcc10a9df4912a8e312b42dd331c54c222faeba44c72748",
+    "metrics_reporting.py": "e9ed675a993b692a09def0e37ccc4f77bcec88cd2700ff0d59e520f1c51f2643",
+    "aggregate_suite.py": "89530278b3208742b3ec20982f880cbcc479f7fa1028de8c2ff8a7e1a379fe88",
+    "frozen_support/__init__.py": "6e2806ce232982a03ba47f9c6c9af75a78ca44930ceae5b93d5801c2e521e17e",
+    "frozen_support/models.py": "360c376db4179060bc5695bd79a6cf9bc1064bd739c88d3248d9b672f4b3c3f9",
+    "frozen_support/training.py": "df85d57240f1390979a8417d4f4ac4f2bdcaf7d28c6be9a709356289e3f86a55",
+    "frozen_support/losses.py": "e70d2727e2a713975ade5e66e0652d70ff6b4afb9021e1bc51765b6ac2428026"
+  },
+  "portable_adjustments": {
+    "data_setup.py": "Package-relative defaults and tensor-only NPZ loading; original source partition and image roles preserved; apply the active 10% training-label mask in memory only when loading the hash-verified legacy CSV. Registered profiles retain their effective mask.",
+    "launch_suite.py": "Package-relative inputs, explicit GPU selection, read-only plan and explicit logit-distillation temperature T=2.",
+    "frozen_support/models.py": "Pre-head feature docstring corrected; computational AST unchanged.",
+    "verify_inputs.py": "New read-only data, mask and scope verification command."
+  },
+  "packaged_module_sha256": {
+    "aggregate_suite.py": "89530278b3208742b3ec20982f880cbcc479f7fa1028de8c2ff8a7e1a379fe88",
+    "data_setup.py": "69fea3b029f4ead0d8e13798dc92c35f36298facb32174477fe07589c4efda49",
+    "frozen_support/__init__.py": "6e2806ce232982a03ba47f9c6c9af75a78ca44930ceae5b93d5801c2e521e17e",
+    "frozen_support/losses.py": "e70d2727e2a713975ade5e66e0652d70ff6b4afb9021e1bc51765b6ac2428026",
+    "frozen_support/models.py": "d0c549df1546c02d8f1eef98c148d4952fda07fa174b5e0e091593012cda3926",
+    "frozen_support/training.py": "df85d57240f1390979a8417d4f4ac4f2bdcaf7d28c6be9a709356289e3f86a55",
+    "geometry_losses.py": "fbeb3e827f745ad0f3305270747e4e1ce3cd9627d0ea35b68f044c65ccf67d80",
+    "latent_reporting.py": "8cc9aaa71189dbf3a9245a275c42a108fe93cf5b4d951242f271e6fc93393e14",
+    "launch_suite.py": "0ede48dd34b00a574c2806aa40ca875742c13af421bf07b45c7deb5fac02ebc1",
+    "metrics_reporting.py": "e9ed675a993b692a09def0e37ccc4f77bcec88cd2700ff0d59e520f1c51f2643",
+    "replay_memory.py": "c959f01a537b08d70694635ce51c54fe35b50662761716802822954b2c9ee9fb",
+    "training_engine.py": "d43ebac7aed6a221db37a80296d8d84d16a2da62bddd9e7f1abcbfdfc0e96536",
+    "verify_inputs.py": "e64085f7d3e00d0487df1edff25cce14c87e11c843bc6d77409afe6e82edf668",
+    "worker.py": "0b35da66ae64421d2dcc10a9df4912a8e312b42dd331c54c222faeba44c72748"
+  },
+  "architecture_unchanged": true,
+  "recipe_changes": [
+    "Requested 10% experimental training labels: 64 of 642, a deterministic subset of the original 127 anchors.",
+    "Logit-distillation temperature remains 2.0 for replay and LwF, with the temperature-squared factor."
+  ]
+}

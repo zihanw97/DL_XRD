@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+outputs/
+continual/outputs/
+supplementary/dkl/outputs/
+*.pth
+*.pt
+*.ckpt
+results/
+checkpoints/
+saved_models/
+.input_downloads/
+data/cache/*.npz
+data/sim_dataset_new/
+data/experiment_1500_maxima/
+data/experiment_1500_maxima_outliner/

@@ -1,0 +1,470 @@
+{
+  "schema": "manuscript_clean_input_cache_v1",
+  "source_pt_sha256": "c3ca2215ec1b237c007a621c8b95c554700109f62afeae66b82da10661d40073",
+  "destination_npz_sha256": "17d8118cb454d081ebd224dba4e440b3412d9e9b24ac21b12cd7d18444a50222",
+  "continual_partition_sha256": "3869763d4851afc2c82b65c95184b2e7e8d6be035e03c0f30cccd9a317feeaf3",
+  "fixed_images_npz_sha256": "4d434e3f82a5efc70b052c39a69c384a0a73db14ae4c06b8a082a846150bed31",
+  "source_cache_contents": "Input images, labels, legacy masks and batch size only; no model or optimizer state.",
+  "source_to_npz_all_arrays_bitwise_equal": true,
+  "keys": {
+    "batch_size": {
+      "shape": [],
+      "dtype": "int64"
+    },
+    "train_source_1_X": {
+      "shape": [
+        362,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_source_1_y": {
+      "shape": [
+        362
+      ],
+      "dtype": "int64"
+    },
+    "val_source_1_X": {
+      "shape": [
+        45,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_source_1_y": {
+      "shape": [
+        45
+      ],
+      "dtype": "int64"
+    },
+    "test_source_1_X": {
+      "shape": [
+        45,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_source_1_y": {
+      "shape": [
+        45
+      ],
+      "dtype": "int64"
+    },
+    "train_source_2_X": {
+      "shape": [
+        141,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_source_2_y": {
+      "shape": [
+        141
+      ],
+      "dtype": "int64"
+    },
+    "val_source_2_X": {
+      "shape": [
+        17,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_source_2_y": {
+      "shape": [
+        17
+      ],
+      "dtype": "int64"
+    },
+    "test_source_2_X": {
+      "shape": [
+        17,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_source_2_y": {
+      "shape": [
+        17
+      ],
+      "dtype": "int64"
+    },
+    "train_source_3_X": {
+      "shape": [
+        99,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_source_3_y": {
+      "shape": [
+        99
+      ],
+      "dtype": "int64"
+    },
+    "val_source_3_X": {
+      "shape": [
+        12,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_source_3_y": {
+      "shape": [
+        12
+      ],
+      "dtype": "int64"
+    },
+    "test_source_3_X": {
+      "shape": [
+        12,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_source_3_y": {
+      "shape": [
+        12
+      ],
+      "dtype": "int64"
+    },
+    "train_source_outlier_X": {
+      "shape": [
+        121,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_source_outlier_y": {
+      "shape": [
+        121
+      ],
+      "dtype": "int64"
+    },
+    "val_source_outlier_X": {
+      "shape": [
+        15,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_source_outlier_y": {
+      "shape": [
+        15
+      ],
+      "dtype": "int64"
+    },
+    "test_source_outlier_X": {
+      "shape": [
+        15,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_source_outlier_y": {
+      "shape": [
+        15
+      ],
+      "dtype": "int64"
+    },
+    "train_target_1_X": {
+      "shape": [
+        157,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_target_1_y": {
+      "shape": [
+        157
+      ],
+      "dtype": "int64"
+    },
+    "val_target_1_X": {
+      "shape": [
+        19,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_target_1_y": {
+      "shape": [
+        19
+      ],
+      "dtype": "int64"
+    },
+    "test_target_1_X": {
+      "shape": [
+        19,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_target_1_y": {
+      "shape": [
+        19
+      ],
+      "dtype": "int64"
+    },
+    "train_target_2_X": {
+      "shape": [
+        232,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_target_2_y": {
+      "shape": [
+        232
+      ],
+      "dtype": "int64"
+    },
+    "val_target_2_X": {
+      "shape": [
+        29,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_target_2_y": {
+      "shape": [
+        29
+      ],
+      "dtype": "int64"
+    },
+    "test_target_2_X": {
+      "shape": [
+        29,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_target_2_y": {
+      "shape": [
+        29
+      ],
+      "dtype": "int64"
+    },
+    "train_target_3_X": {
+      "shape": [
+        173,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_target_3_y": {
+      "shape": [
+        173
+      ],
+      "dtype": "int64"
+    },
+    "val_target_3_X": {
+      "shape": [
+        21,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_target_3_y": {
+      "shape": [
+        21
+      ],
+      "dtype": "int64"
+    },
+    "test_target_3_X": {
+      "shape": [
+        21,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_target_3_y": {
+      "shape": [
+        21
+      ],
+      "dtype": "int64"
+    },
+    "train_target_4_X": {
+      "shape": [
+        80,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_target_4_y": {
+      "shape": [
+        80
+      ],
+      "dtype": "int64"
+    },
+    "val_target_4_X": {
+      "shape": [
+        10,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "val_target_4_y": {
+      "shape": [
+        10
+      ],
+      "dtype": "int64"
+    },
+    "test_target_4_X": {
+      "shape": [
+        10,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "test_target_4_y": {
+      "shape": [
+        10
+      ],
+      "dtype": "int64"
+    },
+    "OOD_bad_X": {
+      "shape": [
+        50,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "OOD_bad_y": {
+      "shape": [
+        50
+      ],
+      "dtype": "int64"
+    },
+    "OOD_X": {
+      "shape": [
+        50,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "OOD_y": {
+      "shape": [
+        50
+      ],
+      "dtype": "int64"
+    },
+    "train_target_all_X_semi": {
+      "shape": [
+        562,
+        1,
+        256,
+        256
+      ],
+      "dtype": "float32"
+    },
+    "train_target_all_y_semi": {
+      "shape": [
+        562
+      ],
+      "dtype": "int64"
+    }
+  },
+  "fixed_images": {
+    "n": 1701,
+    "shape": [
+      1701,
+      1,
+      256,
+      256
+    ],
+    "dtype": "float32",
+    "all_image_fingerprints_verified": true
+  },
+  "original_continual_anchors_preserved": 127,
+  "original_continual_target_training": 642,
+  "original_continual_target_validation": 79,
+  "fixed_protocol": "Fresh paper-matched partitions; not historical result-reproduction manifests.",
+  "fixed_split": "Within each permitted domain/class, floor(0.1*n) validation and floor(0.1*n) internal test; remainder training. Outer material tests removed first.",
+  "fixed_anchor_fraction_requested": 0.1,
+  "fixed_anchor_rounding": "Per target-training class, round half upward with at least one anchor for a nonempty class; no validation/test anchor selection.",
+  "fixed_seeds": {
+    "initialization": [
+      42,
+      43,
+      44
+    ],
+    "partition": [
+      142,
+      143,
+      144
+    ],
+    "anchor": [
+      242,
+      243,
+      244
+    ]
+  },
+  "fixed_scan_manifest": "data/manifests/fixed/scan.csv",
+  "fixed_grouped_manifest": "data/manifests/fixed/grouped.csv",
+  "data_counts": {
+    "simulated": 901,
+    "known_experimental": 800,
+    "noise": 100,
+    "SiC": 100,
+    "total_TIFF": 1901
+  },
+  "excluded_available_ood_groups": [
+    "JHACRD00008 (Al2O3)",
+    "JHAMAJ00001 (unidentified)"
+  ],
+  "raw_data_copies": "Independent files; reflink clone where supported, otherwise normal copy; never hard links/symlinks.",
+  "raw_file_checksums": "data/metadata/raw_file_hashes.csv"
+}

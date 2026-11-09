@@ -1,0 +1,53 @@
+{
+  "schema": "fixed_manuscript_partitions_v1",
+  "requested_target_anchor_fraction": 0.1,
+  "anchor_fraction": 0.1,
+  "split_fractions": {
+    "train": 0.8,
+    "val": 0.1,
+    "internal_test": 0.1
+  },
+  "partition_rule": "Remove protocol-specific outer material test first; per remaining domain/class assign floor(.1*n) validation and floor(.1*n) internal test, then all remaining rows to training.",
+  "anchor_rule": "Per target-training class choose min(n,max(1,floor(.1*n+.5))) anchors using the registered anchor seed; round half upward; validation/internal/outer test rows cannot be anchors.",
+  "seeds": {
+    "initialization": [
+      42,
+      43,
+      44
+    ],
+    "partition": [
+      142,
+      143,
+      144
+    ],
+    "anchor": [
+      242,
+      243,
+      244
+    ]
+  },
+  "fixed_images": {
+    "path": "data/cache/fixed_images.npz",
+    "sha256": "4d434e3f82a5efc70b052c39a69c384a0a73db14ae4c06b8a082a846150bed31"
+  },
+  "protocols": {
+    "scan": {
+      "path": "data/manifests/fixed/scan.csv",
+      "sha256": "a624b11e0a753c02823a4b46f3cb52ca3aedf626ae720e8289f553bae46c928c",
+      "folds": 3
+    },
+    "grouped": {
+      "path": "data/manifests/fixed/grouped.csv",
+      "sha256": "134815fb5525a9cbc4e7caf4d59c47ce7ebf559f706ce4f5f81258c805d0c540",
+      "folds": 24
+    }
+  },
+  "selected_without_model_results": true,
+  "shared_across_models": [
+    "cnn_baseline",
+    "cnn_sngp",
+    "cnn_sngp_adapt"
+  ],
+  "historical_result_reproduction": false,
+  "stable_subseed": "First8bytes, little-endian, of SHA256 colon-joined string(partition_or_anchor_seed,protocol,heldout,domain/class as used)."
+}

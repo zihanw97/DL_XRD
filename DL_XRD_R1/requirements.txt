@@ -1,0 +1,9 @@
+# Install the PyTorch build appropriate for the machine first.
+# The source experiments used torch 2.6.0 with CUDA 12.4.
+numpy==1.26.4
+scikit-learn==1.5.1
+scikit-image==0.24.0
+matplotlib==3.9.2
+Pillow==10.4.0
+tifffile==2023.4.12
+openTSNE==1.0.4
