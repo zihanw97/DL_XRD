@@ -49,7 +49,7 @@ def verify(full=False):
     require(len(rows)==1701, 'CL input count changed')
     require(len({r['sample_id'] for r in rows})==1701, 'Duplicate CL sample IDs')
     require(len({r['exact_float32_image_sha256'] for r in rows})==1701, 'Duplicate CL image fingerprints')
-    require(sum(r['anchor_status']=='anchor' for r in rows)==127, 'CL anchor identities/count changed')
+    require(sum(r['anchor_status']=='anchor' for r in rows)==127, 'Legacy CL source anchor identities/count changed')
     # Exact input pixel identities, independent of Python tensor serialization.
     with np.load(DATA/'cache/xrd_dataset_cache.npz',allow_pickle=False) as cache:
         require(set(cache.files)==set(manifest['keys']), 'Legacy data-cache keys changed')
@@ -130,7 +130,7 @@ def verify(full=False):
     require(len(ood)==200 and Counter(r['category'] for r in ood)=={'noise_only':100,'SiC':100}, 'OOD manifest category counts changed')
     require(all((ROOT/r['image_path']).is_file() and r['sample_id'] not in by_id for r in ood), 'OOD inputs overlap known-class classification roles')
     return dict(status='passed',known_images=1701,raw_TIFFs=1901,OOD_inputs=200,
-                fixed_folds=fold_counts,continual_anchors=127,
+                fixed_folds=fold_counts,continual_source_anchors=127,
                 full_raw_hash_check=bool(full),trained_or_predicted=False)
 
 

@@ -1,9 +1,10 @@
 """Immutable manuscript data views and order-aware continual-learning loaders.
 
 This module never decodes or preprocesses raw diffraction images. It verifies
-the existing float32 cache and preserves every original scan role and anchor
-identity. The distributed cache is a tensor-only NPZ data file, not a model
-checkpoint. Its arrays preserve the original float32 image values exactly.
+the existing float32 cache and preserves every original scan role. The
+registered 10% target-training label mask is shared across all strategies.
+The distributed cache is a tensor-only NPZ data file, not a model checkpoint.
+Its arrays preserve the original float32 image values exactly.
 """
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ from dataclasses import dataclass
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -26,6 +28,10 @@ DEFAULT_CACHE = BASE / "data/cache/xrd_dataset_cache.npz"
 DEFAULT_ASSIGNMENTS = BASE / "data/partitions/continual_partition.csv"
 SOURCE_TENSOR_DATA_SHA256 = "c3ca2215ec1b237c007a621c8b95c554700109f62afeae66b82da10661d40073"
 EXPECTED_ASSIGNMENTS_SHA256 = "3869763d4851afc2c82b65c95184b2e7e8d6be035e03c0f30cccd9a317feeaf3"
+REQUESTED_TARGET_ANCHOR_FRACTION = 0.1
+ANCHOR_SELECTION_SEED = 242
+EXPECTED_ANCHOR_COUNT = 64
+TARGET_TRAINING_N = 642
 DOMAINS = ("source", "target")
 SPLITS = ("train", "val", "test")
 ORDERS = {"canonical": (1, 2, 3, 4), "rotated": (2, 3, 4, 1), "reverse": (4, 3, 2, 1)}
@@ -60,15 +66,55 @@ def sha256(path):
 
 
 def read_assignments(path):
+    """Read assignments, applying the active mask to the packaged legacy CSV.
+
+    Registered run-profile CSVs already contain the active mask, so their
+    anchor identities are retained when blocks are remapped. The immutable
+    packaged CSV and its original 127-anchor mask remain unchanged on disk.
+    """
     with Path(path).open(newline="") as stream:
         rows = list(csv.DictReader(stream))
     for row in rows:
         for key in ("cache_row", "label", "old_block", "block", "new_block", "training_label"):
             row[key] = int(row[key])
+    if sha256(path) == EXPECTED_ASSIGNMENTS_SHA256:
+        rows = select_target_anchors(rows)
     return rows
 
 
-def validate_assignments(rows, *, expected_n=1701, expected_anchor_count=127):
+def select_target_anchors(rows):
+    """Keep a fixed 10% subset of the canonical partition's original anchors.
+
+    Counts round half upward per experimental training block/class. Ranking
+    uses only stable image IDs and a fixed seed; it never consults model
+    results. Labels already hidden in the input remain hidden.
+    """
+    groups = defaultdict(list)
+    for row in rows:
+        if row["domain"] == "target" and row["split"] == "train":
+            groups[row["block"], row["label"]].append(row)
+    retained = set()
+    for part in groups.values():
+        count = math.floor(REQUESTED_TARGET_ANCHOR_FRACTION * len(part) + .5)
+        candidates = [r for r in part if r["anchor_status"] == "anchor"
+                      and r["training_label"] == r["label"]]
+        if len(candidates) < count:
+            raise ValueError("Insufficient original anchors for the requested 10% mask")
+        ranked = sorted(candidates, key=lambda r: hashlib.sha256(
+            f"{ANCHOR_SELECTION_SEED}:continual:{r['legacy_cache_id']}".encode("utf-8")).hexdigest())
+        retained.update(r["legacy_cache_id"] for r in ranked[:count])
+    masked = []
+    for original in rows:
+        row = dict(original)
+        if row["domain"] == "target" and row["split"] == "train":
+            anchor = row["legacy_cache_id"] in retained
+            row["anchor_status"] = "anchor" if anchor else "hidden"
+            row["training_label"] = row["label"] if anchor else -1
+        masked.append(row)
+    return masked
+
+
+def validate_assignments(rows, *, expected_n=1701, expected_anchor_count=EXPECTED_ANCHOR_COUNT):
     if len(rows) != expected_n:
         raise ValueError("Unexpected image count in partition")
     for field in ("sample_id", "legacy_cache_id"):
@@ -101,7 +147,7 @@ def validate_assignments(rows, *, expected_n=1701, expected_anchor_count=127):
             raise ValueError("Original hidden target labels were exposed or changed")
         anchors += status == "anchor"
     if anchors != expected_anchor_count:
-        raise ValueError("Original target anchor count changed")
+        raise ValueError("Registered target anchor count changed")
     return True
 
 
@@ -148,7 +194,10 @@ def prepare_profiles(run, source_csv=DEFAULT_ASSIGNMENTS):
             writer.writeheader(); writer.writerows(assigned)
         results[profile] = dict(path=str(output), sha256=sha256(output), n_images=len(assigned),
             source_csv=str(source_csv), source_sha256=EXPECTED_ASSIGNMENTS_SHA256,
-            target_anchor_count=127, image_roles_and_anchor_identities_preserved=True)
+            target_anchor_count=EXPECTED_ANCHOR_COUNT,
+            requested_target_anchor_fraction=REQUESTED_TARGET_ANCHOR_FRACTION,
+            realized_target_anchor_fraction=EXPECTED_ANCHOR_COUNT / TARGET_TRAINING_N,
+            image_roles_and_anchor_identities_preserved=True)
     with (run / "partition_profiles.json").open("x") as stream:
         json.dump(results, stream, indent=2); stream.write("\n")
     return results
@@ -220,7 +269,7 @@ class Scope:
 def load_scopes(partition_csv, cache_path=DEFAULT_CACHE, *,
                 expected_assignment_sha256=EXPECTED_ASSIGNMENTS_SHA256,
                 expected_cache_sha256=None, expected_n=1701,
-                expected_anchor_count=127):
+                expected_anchor_count=EXPECTED_ANCHOR_COUNT):
     """Verify source hashes and each image/label once, returning 24 lazy scopes."""
     expected_cache_sha256 = expected_cache_sha256 or declared_cache_sha256(cache_path)
     if sha256(partition_csv) != expected_assignment_sha256 or sha256(cache_path) != expected_cache_sha256:

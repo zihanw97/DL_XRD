@@ -1,9 +1,9 @@
 # Continual-learning comparison
 
-This directory preserves the current large-encoder, four-stage comparison.
-Its training engine, worker, replay policy, losses and evaluation calculations
-are unchanged. Only data-file loading, package-relative paths, launcher
-planning and descriptive configuration metadata were adapted for distribution.
+This directory runs the large-encoder, four-stage comparison with a requested
+10% of experimental training labels and logit-distillation temperature `T=2`.
+The training mask contains 64 of 642 labels (9.97% after integer rounding),
+shared across every strategy, seed, order and replay capacity.
 
 The removal of latent-cluster refinement requested for the **fixed models**
 does not apply here: the existing continual procedure still has its common
@@ -17,7 +17,7 @@ python continual/verify_inputs.py
 ```
 
 The first command prints the complete plan; the second verifies all 1,701
-image fingerprints, preserved label masks and every method/order/stage scope.
+image fingerprints, registered label masks and every method/order/stage scope.
 Neither creates results, queries GPUs or starts training. The plan retains
 the six available controls, three seeds and
 three block orders, the replay-capacity sweep, and the material-disjoint
@@ -43,11 +43,24 @@ Data defaults are `data/cache/xrd_dataset_cache.npz` and
 can relocate these files. The NPZ is a tensor-only image/label dataset, loaded
 with `allow_pickle=False`; it has no trained parameters. Its conversion
 manifest and every registered image fingerprint are checked before training.
-The original data roles and all 127 retained target anchors are preserved.
-Changing the fixed models' requested anchor fraction to 10% does not alter
-these existing continual-learning masks.
+The original partition CSV, scan roles and block assignments are preserved.
+When reading that SHA256-verified legacy CSV, the loader applies the active
+mask in memory. For each canonical experimental training block/class, `floor(0.1*n + 0.5)` labels are
+retained from the original anchor pool. Candidates are ranked by SHA256 of
+UTF-8 `242:continual:<legacy_cache_id>`; the lowest hashes are retained.
+The remaining target-training labels are `-1` in optimization and replay.
+`prepare` writes the effective mask into immutable run-profile CSVs; workers
+retain these exact identities rather than resampling after block remapping.
+The material-disjoint control keeps these same 64 anchor identities when
+remapping blocks; it does not resample labels. The 79 experimental validation
+labels remain separate from the training-label budget. Legacy masks inside
+the unchanged NPZ cache are not used for training.
 
-The preserved procedure uses:
+This 10%-label, `T=2` recipe requires fresh runs; it does not reproduce the
+earlier 127-anchor, `T=2` continual results. Existing registered runs keep their
+source snapshots and masks; use a fresh run directory for the updated recipe.
+
+The procedure uses:
 
 - The original six-convolution encoder, flattening to 381,024 values, a linear
   reduction to 2,048, SN-dense layers 512/256, and a 64-RFF SNGP head.
@@ -59,10 +72,12 @@ The preserved procedure uses:
   60 epochs, compactness 10, supervised contrastive weight 0.1 and temperature
   0.1, and its validation-only acceptance gates.
 - The main 128-image replay capacity, split 64 source / 64 target; source
-  herding and target label-free diversity, preserving original label masks.
+  herding and target label-free diversity, preserving the registered 10% label mask.
 - Proposed replay-logit distillation weight 3, temperature 2 with the `T**2`
   factor, and raw pre-head feature distillation weight 1. LwF uses logit
-  distillation on current inputs without image replay.
+  distillation on current inputs without image replay, also at `T=2`.
+  This logit-distillation setting is separate from the geometry contrastive
+  temperature (0.1) and optional validation-fitted calibration controls.
 - Epoch-wise GP-statistic resets and selected-state reconstruction from
   permitted current training plus prior replay, or accumulated training for
   joint retraining. Validation/test inputs never update precision.

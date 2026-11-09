@@ -26,9 +26,9 @@ ORDERS = {"canonical": [1, 2, 3, 4], "rotated": [2, 3, 4, 1], "reverse": [4, 3, 
 
 
 def training_recipe():
-    """The unchanged result-generating base and geometry configuration."""
+    """The shared base and geometry configuration with logit KD at T=2."""
     return engine.effective_config(dict(geometry_enabled=True,
-        learning_rate=5e-4, geometry_learning_rate=5e-5,
+        learning_rate=5e-4, geometry_learning_rate=5e-5, temperature=2.0,
         inner_kwargs=dict(lambda_mmd=2., lambda_classwise_mmd=2.,
                           lambda_pseudo=.1, use_pseudo_labels=True,
                           pseudo_confidence_threshold=.90)))
@@ -106,7 +106,9 @@ def prepare(args):
         allowed_gpu_uuids=allowed,
         maximum_concurrent_workers=len(allowed), checkpoints_saved=False,
         source_snapshot={f: sha(snapshot / f) for f in copied},
-        supervision="Fixed 127 original target-training anchors and original train/validation/test roles; no hidden training label revealed",
+        supervision="Fixed 10% target-training label mask (64/642) and original train/validation/test roles; no hidden training label revealed",
+        requested_target_anchor_fraction=data.REQUESTED_TARGET_ANCHOR_FRACTION,
+        target_training_anchors=data.EXPECTED_ANCHOR_COUNT, target_training_n=data.TARGET_TRAINING_N,
         validation="Common all-seen validation; equal blocks within each domain, sum of domain CE; no future validation or test selection",
         initialization="Fresh encoder and RFF seed; each chain physically reconstructs its first stage and verifies a seed/order/stream state consensus",
         optimization="Fresh fits Adam5e-4; warm continuations Adam2e-5; every stage then frozen-CNN dense AdamW5e-5 refinement up to60epochs. Raw compactness10, SupCon.1; full adds rawfeatureKD1. CanonicalLwF remains current-input logitKD only.",
@@ -246,7 +248,9 @@ if __name__ == "__main__":
         print(json.dumps(dict(jobs=jobs(), jobs_total=len(jobs()),
             training=training_recipe(), fresh_learning_rate=5e-4,
             continuation_learning_rate=2e-5, fresh_fallback_learning_rate=1e-4,
-            source_target_anchor_count=127, target_training_n=642,
+            source_target_anchor_count=data.EXPECTED_ANCHOR_COUNT, target_training_n=data.TARGET_TRAINING_N,
+            requested_target_anchor_fraction=data.REQUESTED_TARGET_ANCHOR_FRACTION,
+            realized_target_anchor_fraction=data.EXPECTED_ANCHOR_COUNT / data.TARGET_TRAINING_N,
             cache=str(data.DEFAULT_CACHE), assignments=str(data.DEFAULT_ASSIGNMENTS),
             file_writes=False, training_started=False), indent=2))
     elif args.command == "prepare":
