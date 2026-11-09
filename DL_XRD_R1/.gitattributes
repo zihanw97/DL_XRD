@@ -1,2 +1,0 @@
-# Preserve the exact bytes used by registered split and metadata checksums.
-*.csv -text
